@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:clear_mind/styles/colors.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:go_router/go_router.dart';
+import 'dart:ui';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -8,21 +10,21 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg200,
+      backgroundColor: Color(0xFFFAFAFA), // Very light gray, almost white
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildHeader(),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     _buildWeeklyMoodTracker(),
                     const SizedBox(height: 24),
-                    _buildQuickActions(),
+                    _buildQuickActions(context),
                     const SizedBox(height: 24),
                     _buildDailyGoals(),
                     const SizedBox(height: 24),
@@ -35,66 +37,78 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
+      extendBody: true,
+      bottomNavigationBar: _buildBottomNavBar(context),
     );
   }
 
-  Widget _buildBottomNavBar() {
-    return Container(
-      height: 64, // Reduced height
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: AppColors.bg100,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary300.withOpacity(0.08),
-            blurRadius: 15,
-            offset: const Offset(0, -3),
+  Widget _buildBottomNavBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+      child: _buildGlassContainer(
+        borderRadius: 24,
+        child: Container(
+          height: 64,
+          decoration: BoxDecoration(
+            color: Colors.white
+                .withOpacity(0.9), // Increased opacity for bottom nav
+            borderRadius: BorderRadius.circular(24),
+            border:
+                Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildNavItem(Icons.home_rounded, 'Home', true),
-          _buildNavItem(Icons.insights_rounded, 'Insights', false),
-          _buildNavItem(Icons.add_circle_outline_rounded, 'Add', false),
-          _buildNavItem(Icons.calendar_today_rounded, 'Plan', false),
-          _buildNavItem(Icons.person_rounded, 'Profile', false),
-        ],
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildNavItem(context, Icons.home_rounded, '/', true),
+              _buildNavItem(
+                  context, Icons.insights_rounded, '/insights', false),
+              _buildNavItem(context, Icons.person_rounded, '/profile', false),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, bool isSelected) {
-    return InkWell(
+  Widget _buildNavItem(
+      BuildContext context, IconData icon, String route, bool isSelected) {
+    return GestureDetector(
       onTap: () {
-        // TODO: Implement navigation
+        if (!isSelected) {
+          context.go(route);
+        }
       },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: isSelected ? AppColors.accent200 : AppColors.text200,
-            size: 26,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? AppColors.accent200 : AppColors.text200,
-              fontSize: 11,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ],
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.accent100.withOpacity(0.5)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Icon(
+          icon,
+          color: isSelected ? AppColors.accent300 : AppColors.text200,
+          size: 28,
+        ),
       ),
     );
   }
 
   Widget _buildHeader() {
+    final now = DateTime.now();
+    final dateFormat = DateFormat('EEEE, MMMM d');
+    final formattedDate = dateFormat.format(now);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -102,83 +116,112 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Good morning,',
-              style: TextStyle(fontSize: 16, color: AppColors.text200),
+              'Hello, Sarah',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: AppColors.text100,
+              ),
             ),
             Text(
-              'Sarah',
+              formattedDate,
               style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.text100),
+                fontSize: 13,
+                color: AppColors.text200,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
-        CircleAvatar(
-          radius: 24,
-          backgroundColor: AppColors.accent100,
-          child: Icon(Icons.person, color: AppColors.bg100),
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.accent100,
+            border: Border.all(color: AppColors.accent300, width: 2),
+          ),
+          child: Icon(
+            Icons.person,
+            color: AppColors.accent300,
+            size: 24,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildQuickActions() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
+  Widget _buildQuickActions(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildQuickActionItem(
-            Icons.self_improvement, 'Meditate', AppColors.primary100),
-        _buildQuickActionItem(Icons.edit_note, 'Journal', AppColors.accent100),
-        _buildQuickActionItem(Icons.favorite, 'Breathe', AppColors.primary200),
-        _buildQuickActionItem(Icons.psychology, 'Therapy', AppColors.accent200),
+        Text(
+          'Quick Actions',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.text100,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildQuickActionItem(context, Icons.self_improvement, 'Meditate',
+                AppColors.primary200),
+            _buildQuickActionItem(context, Icons.edit_note_rounded, 'Journal',
+                AppColors.accent200),
+            _buildQuickActionItem(
+                context, Icons.air_rounded, 'Breathe', AppColors.primary200),
+            _buildQuickActionItem(context, Icons.psychology_alt_rounded,
+                'Therapy', AppColors.accent200),
+          ],
+        ),
       ],
     );
   }
 
-  Widget _buildQuickActionItem(IconData icon, String label, Color color) {
+  Widget _buildQuickActionItem(
+      BuildContext context, IconData icon, String label, Color color) {
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
-            shape: BoxShape.circle,
+        _buildGlassContainer(
+          borderRadius: 20,
+          child: Container(
+            width: 70,
+            height: 70,
+            child: Icon(icon, color: AppColors.accent300, size: 32),
           ),
-          child: Icon(icon, color: color, size: 24),
         ),
         const SizedBox(height: 8),
-        Text(label, style: TextStyle(color: AppColors.text200, fontSize: 12)),
+        Text(
+          label,
+          style: TextStyle(
+            color: AppColors.text200,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildWeeklyMoodTracker() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-      decoration: BoxDecoration(
-        color: AppColors.bg200,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary300.withOpacity(0.08),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildDayMood('Su', 0.8, AppColors.primary100),
-          _buildDayMood('Mo', 0.6, AppColors.accent100),
-          _buildDayMood('Tu', 0.4, AppColors.primary200),
-          _buildDayMood('We', 0.7, AppColors.accent200),
-          _buildDayMood('Th', 0.9, AppColors.primary300),
-          _buildDayMood('Fr', 0.5, Colors.orange),
-          _buildDayMood('Sa', 0.3, AppColors.primary100),
-        ],
+    return _buildGlassContainer(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildDayMood('Su', 0.8, AppColors.primary100),
+            _buildDayMood('Mo', 0.6, AppColors.accent100),
+            _buildDayMood('Tu', 0.4, AppColors.primary200),
+            _buildDayMood('We', 0.7, AppColors.accent200),
+            _buildDayMood('Th', 0.9, AppColors.primary300),
+            _buildDayMood('Fr', 0.5, Colors.orange),
+            _buildDayMood('Sa', 0.3, AppColors.primary100),
+          ],
+        ),
       ),
     );
   }
@@ -288,58 +331,70 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildDailyGoals() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.bg100,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary300.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Daily Goals',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.text100,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Daily Goals',
-            style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.text100),
-          ),
-          const SizedBox(height: 16),
-          _buildGoalItem('Meditate for 10 minutes', 0.6),
-          const SizedBox(height: 12),
-          _buildGoalItem('Write in journal', 1.0),
-          const SizedBox(height: 12),
-          _buildGoalItem('30 minutes of exercise', 0.3),
-        ],
-      ),
+        ),
+        const SizedBox(height: 16),
+        _buildGoalItem('Meditate', '10 min', 0.6, Icons.self_improvement),
+        const SizedBox(height: 12),
+        _buildGoalItem('Journal', '1 entry', 1.0, Icons.edit_note_rounded),
+        const SizedBox(height: 12),
+        _buildGoalItem('Exercise', '30 min', 0.3, Icons.fitness_center),
+      ],
     );
   }
 
-  Widget _buildGoalItem(String title, double progress) {
-    return Row(
-      children: [
-        CircularPercentIndicator(
-          radius: 20.0,
-          lineWidth: 4.0,
-          percent: progress,
-          center: Text('${(progress * 100).toInt()}%',
-              style: TextStyle(fontSize: 10)),
-          progressColor: AppColors.accent200,
-          backgroundColor: AppColors.bg300,
+  Widget _buildGoalItem(
+      String title, String subtitle, double progress, IconData icon) {
+    final color = AppColors.accent300;
+
+    return _buildGlassContainer(
+      borderRadius: 16,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.text100,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.text200,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            CircularProgressIndicator(
+              value: progress,
+              backgroundColor: color.withOpacity(0.2),
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+              strokeWidth: 5,
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(title,
-              style: TextStyle(color: AppColors.text200, fontSize: 14)),
-        ),
-      ],
+      ),
     );
   }
 
@@ -375,75 +430,67 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildMeditationSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.bg100,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary300.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Recommended Meditation',
-            style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.text100),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: AppColors.primary200,
-                  borderRadius: BorderRadius.circular(10),
+    return _buildGlassContainer(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Recommended Meditation',
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.text100),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent100,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.spa, color: AppColors.accent300, size: 40),
                 ),
-                child: Icon(Icons.spa, color: AppColors.bg100, size: 40),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Calm Mind',
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.text100),
-                    ),
-                    Text(
-                      '10 minutes • Beginner',
-                      style: TextStyle(fontSize: 14, color: AppColors.text200),
-                    ),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: Text('Start'),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: AppColors.bg100,
-                        backgroundColor: AppColors.accent200,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Calm Mind',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.text100),
+                      ),
+                      Text(
+                        '10 minutes • Beginner',
+                        style:
+                            TextStyle(fontSize: 14, color: AppColors.text200),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: () {},
+                        child: Text('Start'),
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: AppColors.bg100,
+                          backgroundColor: AppColors.accent200,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -493,6 +540,38 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildGlassContainer(
+      {required Widget child, double borderRadius = 20}) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(borderRadius),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            spreadRadius: 0,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.8), // Increased opacity
+              borderRadius: BorderRadius.circular(borderRadius),
+              border:
+                  Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+            ),
+            child: child,
+          ),
+        ),
       ),
     );
   }
