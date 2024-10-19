@@ -1,6 +1,6 @@
 # Clear Mind - Your Stress Relief Companion
+![smartmockups_m2g1m8wx](https://github.com/user-attachments/assets/686edbe8-bbf9-4b46-a675-62c16fb94900)
 
-![Clear Mind Banner](https://github.com/user-attachments/assets/clear-mind-banner.png)
 
 Welcome to **Clear Mind**, a wellness app designed specifically to help students manage stress with meditation, relaxation techniques, calming sounds, and smart AI-based emotional analysis. Available on both iOS and Android, Clear Mind is your all-in-one solution for achieving a balanced mind.
 
@@ -25,7 +25,8 @@ Clear Mind is built to help students cope with academic stress through mindfulne
 
 | iOS Preview  | Android Preview |
 |--------------|-----------------|
-| ![iOS Preview](https://github.com/user-attachments/assets/ios-preview.png) | ![Android Preview](https://github.com/user-attachments/assets/android-preview.png) |
+
+![smartmockups_m2g1q8k4](https://github.com/user-attachments/assets/b9e34938-44e8-474d-848b-45b1dfa9d5d8)
 
 ---
 
@@ -40,3 +41,41 @@ git clone https://github.com/your-username/clear-mind.git
 cd clear-mind
 
 Run the App Locally  
+🛠️ Prerequisites
+Flutter SDK
+Dart SDK
+Android Studio or Xcode
+🎨 Design Elements
+Clear Mind is designed with a focus on user relaxation and minimalism:
+
+Calming Color Palette: Soft, nature-inspired tones like blues and greens.
+User-Centric Navigation: Intuitive and fluid UI built for ease and accessibility.
+Interactive Design: Engaging buttons and transitions to enhance relaxation.
+🤖 Smart Features
+The app's AI-powered mood analysis helps understand your emotional state and offers personalized suggestions such as:
+
+Breathing exercises
+Meditation sessions
+Focus-enhancing music
+Tailored emotional insights for stress relief
+📚 Resources and Documentation
+This project uses Flutter. You can find valuable resources for development:
+
+Flutter: Get Started Guide
+Flutter Cookbook
+Flutter API Reference
+🧑‍💻 Contributing
+We welcome community contributions! Here's how you can get involved:
+
+Fork the Repo
+Create a Feature Branch
+Submit a Pull Request
+For more information, please check out our CONTRIBUTING.md.
+
+📄 License
+This project is licensed under the MIT License. See the LICENSE for more details.
+
+By integrating Clear Mind into your daily routine, you can enhance focus, relieve stress, and take control of your mental well-being. Start your journey towards mindfulness today!
+
+
+
