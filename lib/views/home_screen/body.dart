@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:clear_mind/styles/colors.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:ui';
 import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -10,142 +12,106 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFAFAFA), // Very light gray, almost white
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(),
-                    const SizedBox(height: 20),
-                    _buildWeeklyMoodTracker(),
-                    const SizedBox(height: 24),
-                    _buildQuickActions(context),
-                    const SizedBox(height: 24),
-                    _buildDailyGoals(),
-                    const SizedBox(height: 24),
-                    _buildMeditationSection(),
-                    const SizedBox(height: 32),
-                  ],
+      body: Stack(
+        children: [
+          CustomPaint(
+            painter: MorningSkyPainter(),
+            size: Size.infinite,
+          ),
+          SafeArea(
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(),
+                        const SizedBox(height: 20),
+                        _buildWeeklyMoodTracker(),
+                        const SizedBox(height: 24),
+                        _buildQuickActions(context),
+                        const SizedBox(height: 24),
+                        _buildDailyGoals(),
+                        const SizedBox(height: 24),
+                        _buildMeditationSection(),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
-      extendBody: true,
-      bottomNavigationBar: _buildBottomNavBar(context),
-    );
-  }
-
-  Widget _buildBottomNavBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
-      child: _buildGlassContainer(
-        borderRadius: 24,
-        child: Container(
-          height: 64,
-          decoration: BoxDecoration(
-            color: Colors.white
-                .withOpacity(0.9), // Increased opacity for bottom nav
-            borderRadius: BorderRadius.circular(24),
-            border:
-                Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 20,
-                offset: const Offset(0, 4),
-              ),
-            ],
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildNavItem(context, Icons.home_rounded, '/', true),
-              _buildNavItem(
-                  context, Icons.insights_rounded, '/insights', false),
-              _buildNavItem(context, Icons.person_rounded, '/profile', false),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-      BuildContext context, IconData icon, String route, bool isSelected) {
-    return GestureDetector(
-      onTap: () {
-        if (!isSelected) {
-          context.go(route);
-        }
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.accent100.withOpacity(0.5)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Icon(
-          icon,
-          color: isSelected ? AppColors.accent300 : AppColors.text200,
-          size: 28,
-        ),
+        ],
       ),
     );
   }
 
   Widget _buildHeader() {
     final now = DateTime.now();
-    final dateFormat = DateFormat('EEEE, MMMM d');
-    final formattedDate = dateFormat.format(now);
+    final hour = now.hour;
+    final greeting = hour < 12
+        ? 'Good Morning'
+        : (hour < 17 ? 'Good Afternoon' : 'Good Evening');
+    final iconData =
+        hour < 17 ? Icons.light_mode_rounded : Icons.dark_mode_rounded;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Hello, Sarah',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: AppColors.text100,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  greeting,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF2D3142),
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Sarah',
+                  style: GoogleFonts.poppins(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D3142),
+                  ),
+                ),
+              ],
             ),
-            Text(
-              formattedDate,
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.text200,
-                fontWeight: FontWeight.w500,
-              ),
+            Row(
+              children: [
+                Text(
+                  DateFormat('MMM d').format(now),
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF2D3142).withOpacity(0.7),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Color(0xFF4F5D75).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    iconData,
+                    color: Color(0xFF4F5D75),
+                    size: 24,
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.accent100,
-            border: Border.all(color: AppColors.accent300, width: 2),
-          ),
-          child: Icon(
-            Icons.person,
-            color: AppColors.accent300,
-            size: 24,
-          ),
         ),
       ],
     );
@@ -156,53 +122,118 @@ class HomeScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Actions',
+          'Explore',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 24,
             fontWeight: FontWeight.bold,
             color: AppColors.text100,
           ),
         ),
         const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildQuickActionItem(context, Icons.self_improvement, 'Meditate',
-                AppColors.primary200),
-            _buildQuickActionItem(context, Icons.edit_note_rounded, 'Journal',
-                AppColors.accent200),
+        GridView.custom(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 1.5,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+          ),
+          childrenDelegate: SliverChildListDelegate([
             _buildQuickActionItem(
-                context, Icons.air_rounded, 'Breathe', AppColors.primary200),
-            _buildQuickActionItem(context, Icons.psychology_alt_rounded,
-                'Therapy', AppColors.accent200),
-          ],
+                context,
+                Icons.self_improvement,
+                'Meditate',
+                '/meditation',
+                Color(0xFF6A11CB),
+                [Icons.spa, Icons.air, Icons.waves]),
+            _buildQuickActionItem(
+                context,
+                Icons.edit_note_rounded,
+                'Journal',
+                '/journal',
+                Color(0xFF5643CC),
+                [Icons.book, Icons.create, Icons.mood]),
+            _buildQuickActionItem(
+                context,
+                Icons.air_rounded,
+                'Breathe',
+                '/breathe',
+                Color(0xFF4B3CCC),
+                [Icons.favorite, Icons.cloud, Icons.nature],
+                widthFactor: 1.05),
+            _buildQuickActionItem(
+                context,
+                Icons.psychology_alt_rounded,
+                'Therapy',
+                '/therapy',
+                Color(0xFF7E57C2),
+                [Icons.chat_bubble, Icons.people, Icons.healing]),
+          ]),
         ),
       ],
     );
   }
 
-  Widget _buildQuickActionItem(
-      BuildContext context, IconData icon, String label, Color color) {
-    return Column(
-      children: [
-        _buildGlassContainer(
-          borderRadius: 20,
-          child: Container(
-            width: 70,
-            height: 70,
-            child: Icon(icon, color: AppColors.accent300, size: 32),
+  Widget _buildQuickActionItem(BuildContext context, IconData icon,
+      String label, String route, Color color, List<IconData> smallIcons,
+      {double widthFactor = 1.0}) {
+    return GestureDetector(
+      onTap: () => context.go(route),
+      child: FractionallySizedBox(
+        widthFactor: widthFactor,
+        child: Container(
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: smallIcons
+                              .map((smallIcon) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 4),
+                                    child: Icon(
+                                      smallIcon,
+                                      color: Colors.white.withOpacity(0.6),
+                                      size: 14,
+                                    ),
+                                  ))
+                              .toList(),
+                        ),
+                        Icon(
+                          icon,
+                          color: Colors.white.withOpacity(0.8),
+                          size: 32,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            color: AppColors.text200,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -284,15 +315,8 @@ class HomeScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.bg100,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary300.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -334,67 +358,73 @@ class HomeScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Daily Goals',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColors.text100,
+        _buildSectionTitle('Daily Goals'),
+        const SizedBox(height: 16),
+        _buildGlassContainer(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildGoalItem('Meditate', '10 min', 0.6,
+                    Icons.self_improvement, AppColors.primary100),
+                _buildGoalItem('Journal', '1 entry', 1.0,
+                    Icons.edit_note_rounded, AppColors.accent100),
+                _buildGoalItem('Gratitude', '3 things', 0.3,
+                    Icons.favorite_outline, AppColors.primary200),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 16),
-        _buildGoalItem('Meditate', '10 min', 0.6, Icons.self_improvement),
-        const SizedBox(height: 12),
-        _buildGoalItem('Journal', '1 entry', 1.0, Icons.edit_note_rounded),
-        const SizedBox(height: 12),
-        _buildGoalItem('Exercise', '30 min', 0.3, Icons.fitness_center),
       ],
     );
   }
 
-  Widget _buildGoalItem(
-      String title, String subtitle, double progress, IconData icon) {
-    final color = AppColors.accent300;
-
-    return _buildGlassContainer(
-      borderRadius: 16,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Row(
+  Widget _buildGoalItem(String title, String subtitle, double progress,
+      IconData icon, Color color) {
+    return Column(
+      children: [
+        Stack(
+          alignment: Alignment.center,
           children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.text100,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.text200,
-                    ),
-                  ),
-                ],
+            SizedBox(
+              width: 80,
+              height: 80,
+              child: CircularProgressIndicator(
+                value: progress,
+                backgroundColor: color.withOpacity(0.2),
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+                strokeWidth: 8,
               ),
             ),
-            CircularProgressIndicator(
-              value: progress,
-              backgroundColor: color.withOpacity(0.2),
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-              strokeWidth: 5,
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 32),
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 12),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.text100,
+          ),
+        ),
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 14,
+            color: AppColors.text200,
+          ),
+        ),
+      ],
     );
   }
 
@@ -408,16 +438,12 @@ class HomeScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Daily Tip',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.text100,
-                      fontSize: 18)),
-              Icon(Icons.lightbulb, color: AppColors.accent200),
-            ],
+          Text(
+            'Daily Tip',
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.text100),
           ),
           const SizedBox(height: 12),
           Text(
@@ -430,30 +456,24 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildMeditationSection() {
-    return _buildGlassContainer(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Recommended Meditation',
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.text100),
-            ),
-            const SizedBox(height: 16),
-            Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('Meditation'),
+        const SizedBox(height: 16),
+        _buildGlassContainer(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
                 Container(
-                  width: 80,
-                  height: 80,
+                  width: 100,
+                  height: 100,
                   decoration: BoxDecoration(
-                    color: AppColors.accent100,
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.accent100.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Icon(Icons.spa, color: AppColors.accent300, size: 40),
+                  child: Icon(Icons.spa, color: AppColors.accent300, size: 50),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -462,34 +482,52 @@ class HomeScreen extends StatelessWidget {
                     children: [
                       Text(
                         'Calm Mind',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.text100),
+                        style: GoogleFonts.poppins(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.text100,
+                        ),
                       ),
+                      const SizedBox(height: 4),
                       Text(
                         '10 minutes • Beginner',
-                        style:
-                            TextStyle(fontSize: 14, color: AppColors.text200),
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                        onPressed: () {},
-                        child: Text('Start'),
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: AppColors.bg100,
-                          backgroundColor: AppColors.accent200,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.text200,
                         ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          _buildMeditationTag('Stress Relief'),
+                          const SizedBox(width: 8),
+                          _buildMeditationTag('Focus'),
+                        ],
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-          ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMeditationTag(String tag) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.accent100.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        tag,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: AppColors.accent300,
         ),
       ),
     );
@@ -499,15 +537,8 @@ class HomeScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.bg100,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary300.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -546,33 +577,117 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildGlassContainer(
       {required Widget child, double borderRadius = 20}) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            spreadRadius: 0,
-            offset: const Offset(0, 4),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white
+                .withOpacity(0.8), // Increased opacity for better contrast
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: Border.all(
+                color: Colors.white.withOpacity(0.6),
+                width: 1.5), // Increased opacity
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.8), // Increased opacity
-              borderRadius: BorderRadius.circular(borderRadius),
-              border:
-                  Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-            ),
-            child: child,
-          ),
+          child: child,
         ),
       ),
     );
   }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 24,
+            decoration: BoxDecoration(
+              color: AppColors.accent200,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          SizedBox(width: 8),
+          Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: AppColors.text100,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class MorningSkyPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Rect rect = Offset.zero & size;
+    final LinearGradient gradient = LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        Color(0xFFF0F4F8), // Very light blue-gray
+        Color(0xFFFAFAFC), // Almost white
+      ],
+      stops: [0.0, 1.0],
+    );
+
+    final Paint paint = Paint()..shader = gradient.createShader(rect);
+    canvas.drawRect(rect, paint);
+
+    // Draw subtle accent
+    final accentPaint = Paint()
+      ..color = Color(0xFFE1E8ED).withOpacity(0.5)
+      ..style = PaintingStyle.fill;
+
+    Path accentPath = Path()
+      ..moveTo(0, size.height * 0.35)
+      ..quadraticBezierTo(
+          size.width * 0.5, size.height * 0.2, size.width, size.height * 0.3)
+      ..lineTo(size.width, 0)
+      ..lineTo(0, 0)
+      ..close();
+
+    canvas.drawPath(accentPath, accentPaint);
+
+    // Draw abstract sun
+    final sunPaint = Paint()
+      ..color = Color(0xFFFFF9C4).withOpacity(0.2) // Very light yellow
+      ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(Offset(size.width * 0.8, size.height * 0.1),
+        size.width * 0.15, sunPaint);
+
+    // Draw abstract clouds
+    final cloudPaint = Paint()
+      ..color = Colors.white.withOpacity(0.3)
+      ..style = PaintingStyle.fill;
+
+    Path cloudPath1 = Path()
+      ..moveTo(size.width * 0.1, size.height * 0.15)
+      ..quadraticBezierTo(size.width * 0.2, size.height * 0.1, size.width * 0.3,
+          size.height * 0.15)
+      ..quadraticBezierTo(size.width * 0.4, size.height * 0.2, size.width * 0.5,
+          size.height * 0.15);
+
+    Path cloudPath2 = Path()
+      ..moveTo(size.width * 0.4, size.height * 0.25)
+      ..quadraticBezierTo(size.width * 0.5, size.height * 0.2, size.width * 0.6,
+          size.height * 0.25)
+      ..quadraticBezierTo(size.width * 0.7, size.height * 0.3, size.width * 0.8,
+          size.height * 0.25);
+
+    canvas.drawPath(cloudPath1, cloudPaint);
+    canvas.drawPath(cloudPath2, cloudPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

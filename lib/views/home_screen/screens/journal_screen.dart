@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:clear_mind/styles/colors.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 
 class JournalScreen extends StatefulWidget {
   const JournalScreen({Key? key}) : super(key: key);
@@ -115,7 +116,7 @@ class _JournalScreenState extends State<JournalScreen>
         children: [
           IconButton(
             icon: Icon(Icons.arrow_back, color: AppColors.text100),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.go('/'),
           ),
           Text(
             'Journal',

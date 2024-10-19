@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:clear_mind/styles/colors.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
 
 class TherapyScreen extends StatefulWidget {
   const TherapyScreen({Key? key}) : super(key: key);
@@ -76,6 +77,10 @@ class _TherapyScreenState extends State<TherapyScreen>
     return Scaffold(
       backgroundColor: AppColors.bg200,
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.text100),
+          onPressed: () => context.go('/'),
+        ),
         title: Text('Therapy', style: TextStyle(color: AppColors.text100)),
         backgroundColor: AppColors.bg100,
         elevation: 0,

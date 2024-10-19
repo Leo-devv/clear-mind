@@ -43,10 +43,7 @@ class _MeditationScreenState extends State<MeditationScreen> {
       children: [
         IconButton(
           icon: Icon(Icons.arrow_back, color: AppColors.text100),
-          onPressed: () {
-            // Use context.go('/') instead of Navigator.pop(context)
-            context.go('/home');
-          },
+          onPressed: () => context.go('/'),
         ),
         Text(
           'Meditation',

@@ -3,6 +3,7 @@ import 'package:clear_mind/styles/colors.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:go_router/go_router.dart';
 
 class BreatheScreen extends StatefulWidget {
   const BreatheScreen({Key? key}) : super(key: key);
@@ -173,7 +174,7 @@ class _BreatheScreenState extends State<BreatheScreen>
         children: [
           IconButton(
             icon: Icon(Icons.arrow_back, color: AppColors.text100),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.go('/'),
           ),
           Text(
             'Breathe',
