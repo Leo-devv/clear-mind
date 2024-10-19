@@ -2,23 +2,23 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Background colors
-  static const Color bg100 = Color(0xFFF8F9FA);
-  static const Color bg200 = Color(0xFFF1F3F5);
-  static const Color bg300 = Color(0xFFE9ECEF);
+  static const Color bg100 = Color(0xFFF5F7FA);
+  static const Color bg200 = Color(0xFFEAEEF3);
+  static const Color bg300 = Color(0xFFD8E1EB);
 
   // Text colors
-  static const Color text100 = Color(0xFF212529);
-  static const Color text200 = Color(0xFF495057);
+  static const Color text100 = Color(0xFF2D3142);
+  static const Color text200 = Color(0xFF4F5D75);
   static const Color text300 = Color(0xFF868E96);
 
   // Primary colors
-  static const Color primary100 = Color(0xFFE7F5FF);
-  static const Color primary200 = Color(0xFFA5D8FF);
-  static const Color primary300 = Color(0xFF74C0FC);
+  static const Color primary100 = Color(0xFF6A11CB);
+  static const Color primary200 = Color(0xFF5643CC);
+  static const Color primary300 = Color(0xFF4B3CCC);
 
   // Accent colors (updated to pastel blue)
-  static const Color accent100 = Color(0xFFCCE9FF);
-  static const Color accent200 = Color(0xFF99D1FF);
+  static const Color accent100 = Color(0xFF7E57C2);
+  static const Color accent200 = Color(0xFF9575CD);
   static const Color accent300 = Color(0xFF66B9FF);
 
   // Semantic colors

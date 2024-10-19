@@ -6,46 +6,41 @@ import 'dart:ui';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+class HomeScreenBody extends StatelessWidget {
+  const HomeScreenBody({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          CustomPaint(
-            painter: MorningSkyPainter(),
-            size: Size.infinite,
-          ),
-          SafeArea(
-            child: CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildHeader(),
-                        const SizedBox(height: 20),
-                        _buildWeeklyMoodTracker(),
-                        const SizedBox(height: 24),
-                        _buildQuickActions(context),
-                        const SizedBox(height: 24),
-                        _buildDailyGoals(),
-                        const SizedBox(height: 24),
-                        _buildMeditationSection(),
-                        const SizedBox(height: 32),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+    // Calculate the height of the bottom navigation bar plus some extra padding
+    final bottomPadding = MediaQuery.of(context).padding.bottom + 20.0;
+
+    return Stack(
+      children: [
+        CustomPaint(
+          painter: MorningSkyPainter(),
+          size: Size.infinite,
+        ),
+        CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(20, 16, 20, bottomPadding),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  _buildHeader(),
+                  const SizedBox(height: 20),
+                  _buildWeeklyMoodTracker(),
+                  const SizedBox(height: 24),
+                  _buildQuickActions(context),
+                  const SizedBox(height: 24),
+                  _buildDailyGoals(),
+                  const SizedBox(height: 24),
+                  _buildMeditationSection(),
+                ]),
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -123,83 +118,115 @@ class HomeScreen extends StatelessWidget {
       children: [
         Text(
           'Explore',
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             fontSize: 24,
             fontWeight: FontWeight.bold,
             color: AppColors.text100,
           ),
         ),
         const SizedBox(height: 16),
-        GridView.custom(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 1.5,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-          ),
-          childrenDelegate: SliverChildListDelegate([
-            _buildQuickActionItem(
-                context,
-                Icons.self_improvement,
-                'Meditate',
-                '/meditation',
-                Color(0xFF6A11CB),
-                [Icons.spa, Icons.air, Icons.waves]),
-            _buildQuickActionItem(
-                context,
-                Icons.edit_note_rounded,
-                'Journal',
-                '/journal',
-                Color(0xFF5643CC),
-                [Icons.book, Icons.create, Icons.mood]),
-            _buildQuickActionItem(
-                context,
-                Icons.air_rounded,
-                'Breathe',
-                '/breathe',
-                Color(0xFF4B3CCC),
-                [Icons.favorite, Icons.cloud, Icons.nature],
-                widthFactor: 1.05),
-            _buildQuickActionItem(
-                context,
-                Icons.psychology_alt_rounded,
-                'Therapy',
-                '/therapy',
-                Color(0xFF7E57C2),
-                [Icons.chat_bubble, Icons.people, Icons.healing]),
-          ]),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final itemWidth = (constraints.maxWidth - 12) / 2;
+            final itemHeight = itemWidth * 0.6;
+            return Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _buildQuickActionItem(
+                  context,
+                  Icons.self_improvement,
+                  'Meditate',
+                  '/meditation',
+                  Color(0xFF6A11CB),
+                  [Icons.spa, Icons.air, Icons.waves],
+                  width: itemWidth,
+                  height: itemHeight,
+                ),
+                _buildQuickActionItem(
+                  context,
+                  Icons.edit_note_rounded,
+                  'Journal',
+                  '/journal',
+                  Color(0xFF5643CC),
+                  [Icons.book, Icons.create, Icons.mood],
+                  width: itemWidth,
+                  height: itemHeight,
+                ),
+                _buildQuickActionItem(
+                  context,
+                  Icons.air_rounded,
+                  'Breathe',
+                  '/breathe',
+                  Color(0xFF4B3CCC),
+                  [Icons.favorite, Icons.cloud, Icons.nature],
+                  width: itemWidth,
+                  height: itemHeight,
+                ),
+                _buildQuickActionItem(
+                  context,
+                  Icons.psychology_alt_rounded,
+                  'Therapy',
+                  '/therapy',
+                  Color(0xFF7E57C2),
+                  [Icons.chat_bubble, Icons.people, Icons.healing],
+                  width: itemWidth,
+                  height: itemHeight,
+                ),
+              ],
+            );
+          },
         ),
       ],
     );
   }
 
-  Widget _buildQuickActionItem(BuildContext context, IconData icon,
-      String label, String route, Color color, List<IconData> smallIcons,
-      {double widthFactor = 1.0}) {
+  Widget _buildQuickActionItem(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String route,
+    Color color,
+    List<IconData> smallIcons, {
+    required double width,
+    required double height,
+  }) {
     return GestureDetector(
       onTap: () => context.go(route),
-      child: FractionallySizedBox(
-        widthFactor: widthFactor,
-        child: Container(
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    color.withOpacity(0.7),
+                    color.withOpacity(0.4),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1.5,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       label,
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -215,7 +242,7 @@ class HomeScreen extends StatelessWidget {
                                     child: Icon(
                                       smallIcon,
                                       color: Colors.white.withOpacity(0.6),
-                                      size: 14,
+                                      size: 12,
                                     ),
                                   ))
                               .toList(),
@@ -223,14 +250,14 @@ class HomeScreen extends StatelessWidget {
                         Icon(
                           icon,
                           color: Colors.white.withOpacity(0.8),
-                          size: 32,
+                          size: 28,
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -271,7 +298,7 @@ class HomeScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Container(
-          width: 24,
+          width: 20,
           height: 120,
           decoration: BoxDecoration(
             color: AppColors.bg300.withOpacity(0.3),
@@ -367,11 +394,11 @@ class HomeScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _buildGoalItem('Meditate', '10 min', 0.6,
-                    Icons.self_improvement, AppColors.primary100),
+                    Icons.self_improvement, Color(0xFF6A11CB)),
                 _buildGoalItem('Journal', '1 entry', 1.0,
-                    Icons.edit_note_rounded, AppColors.accent100),
+                    Icons.edit_note_rounded, Color(0xFF5643CC)),
                 _buildGoalItem('Gratitude', '3 things', 0.3,
-                    Icons.favorite_outline, AppColors.primary200),
+                    Icons.favorite_outline, Color(0xFF4B3CCC)),
               ],
             ),
           ),
@@ -387,40 +414,58 @@ class HomeScreen extends StatelessWidget {
         Stack(
           alignment: Alignment.center,
           children: [
-            SizedBox(
-              width: 80,
-              height: 80,
-              child: CircularProgressIndicator(
-                value: progress,
-                backgroundColor: color.withOpacity(0.2),
-                valueColor: AlwaysStoppedAnimation<Color>(color),
-                strokeWidth: 8,
+            ClipOval(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: color.withOpacity(0.15),
+                  ),
+                  child: CustomPaint(
+                    painter: GlassyCircularProgressPainter(
+                      progress: progress,
+                      color: color,
+                    ),
+                  ),
+                ),
               ),
             ),
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                shape: BoxShape.circle,
+            ClipOval(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: color.withOpacity(0.2),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Icon(icon, color: color.withOpacity(0.8), size: 28),
+                ),
               ),
-              child: Icon(icon, color: color, size: 32),
             ),
           ],
         ),
         const SizedBox(height: 12),
         Text(
           title,
-          style: TextStyle(
-            fontSize: 16,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
             fontWeight: FontWeight.w600,
             color: AppColors.text100,
           ),
         ),
         Text(
           subtitle,
-          style: TextStyle(
-            fontSize: 14,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
             color: AppColors.text200,
           ),
         ),
@@ -470,10 +515,10 @@ class HomeScreen extends StatelessWidget {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: AppColors.accent100.withOpacity(0.2),
+                    color: Color(0xFF6A11CB).withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Icon(Icons.spa, color: AppColors.accent300, size: 50),
+                  child: Icon(Icons.spa, color: Color(0xFF6A11CB), size: 50),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -519,7 +564,7 @@ class HomeScreen extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.accent100.withOpacity(0.2),
+        color: Color(0xFF6A11CB).withOpacity(0.2),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -527,7 +572,7 @@ class HomeScreen extends StatelessWidget {
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w500,
-          color: AppColors.accent300,
+          color: Color(0xFF6A11CB),
         ),
       ),
     );
@@ -633,8 +678,8 @@ class MorningSkyPainter extends CustomPainter {
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       colors: [
-        Color(0xFFF0F4F8), // Very light blue-gray
-        Color(0xFFFAFAFC), // Almost white
+        Color(0xFFD8E1EB), // Darker blue-gray
+        Color(0xFFEAEEF3), // Darker off-white
       ],
       stops: [0.0, 1.0],
     );
@@ -644,7 +689,8 @@ class MorningSkyPainter extends CustomPainter {
 
     // Draw subtle accent
     final accentPaint = Paint()
-      ..color = Color(0xFFE1E8ED).withOpacity(0.5)
+      ..color =
+          Color(0xFFC5D1E0).withOpacity(0.3) // Even darker and more transparent
       ..style = PaintingStyle.fill;
 
     Path accentPath = Path()
@@ -659,7 +705,8 @@ class MorningSkyPainter extends CustomPainter {
 
     // Draw abstract sun
     final sunPaint = Paint()
-      ..color = Color(0xFFFFF9C4).withOpacity(0.2) // Very light yellow
+      ..color = Color(0xFFFFF0B3)
+          .withOpacity(0.1) // Darker yellow, even more transparent
       ..style = PaintingStyle.fill;
 
     canvas.drawCircle(Offset(size.width * 0.8, size.height * 0.1),
@@ -667,7 +714,7 @@ class MorningSkyPainter extends CustomPainter {
 
     // Draw abstract clouds
     final cloudPaint = Paint()
-      ..color = Colors.white.withOpacity(0.3)
+      ..color = Colors.white.withOpacity(0.2) // Even more transparent
       ..style = PaintingStyle.fill;
 
     Path cloudPath1 = Path()
@@ -690,4 +737,65 @@ class MorningSkyPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class GlassyCircularProgressPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+
+  GlassyCircularProgressPainter({required this.progress, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    final strokeWidth = 6.0;
+
+    // Draw subtle background circle
+    final bgPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..color = color.withOpacity(0.1);
+
+    canvas.drawCircle(center, radius - strokeWidth / 2, bgPaint);
+
+    // Draw progress arc
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..shader = LinearGradient(
+        colors: [
+          color.withOpacity(0.8),
+          color.withOpacity(0.6),
+        ],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ).createShader(Rect.fromCircle(center: center, radius: radius));
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius - strokeWidth / 2),
+      -1.5708, // Start from the top (90 degrees)
+      progress * 2 * 3.14159, // Full circle is 2*pi radians
+      false,
+      paint,
+    );
+
+    // Draw glassy highlight
+    final highlightPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth / 2
+      ..color = Colors.white.withOpacity(0.4);
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius - strokeWidth / 2),
+      -1.5708,
+      0.7853981633974483, // 45 degrees
+      false,
+      highlightPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

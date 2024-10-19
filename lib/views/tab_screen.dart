@@ -24,15 +24,21 @@ class _TabScreenState extends State<TabScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: _screens[_currentIndex],
       extendBody: true,
-      bottomNavigationBar: _buildBottomNavBar(context),
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(
+          canvasColor: Colors.transparent,
+        ),
+        child: _buildBottomNavBar(context),
+      ),
     );
   }
 
   Widget _buildBottomNavBar(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+      padding: const EdgeInsets.only(bottom: 16, left: 32, right: 32),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: BackdropFilter(
@@ -45,13 +51,16 @@ class _TabScreenState extends State<TabScreen> {
               border:
                   Border.all(color: Colors.white.withOpacity(0.2), width: 1),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildNavItem(context, Icons.home_rounded, 0),
-                _buildNavItem(context, Icons.insights_rounded, 1),
-                _buildNavItem(context, Icons.person_rounded, 2),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildNavItem(context, Icons.home_rounded, 0),
+                  _buildNavItem(context, Icons.insights_rounded, 1),
+                  _buildNavItem(context, Icons.person_rounded, 2),
+                ],
+              ),
             ),
           ),
         ),
@@ -75,13 +84,13 @@ class _TabScreenState extends State<TabScreen> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.accent100.withOpacity(0.5)
+              ? AppColors.accent100.withOpacity(0.3)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Icon(
           icon,
-          color: isSelected ? AppColors.accent300 : AppColors.text200,
+          color: isSelected ? Colors.white : AppColors.text200,
           size: 28,
         ),
       ),
@@ -90,31 +99,26 @@ class _TabScreenState extends State<TabScreen> {
 
   Widget _buildGlassContainer(
       {required Widget child, double borderRadius = 20}) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            spreadRadius: 0,
-            offset: const Offset(0, 4),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.8),
+            borderRadius: BorderRadius.circular(borderRadius),
+            border:
+                Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                spreadRadius: 0,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(borderRadius),
-              border:
-                  Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-            ),
-            child: child,
-          ),
+          child: child,
         ),
       ),
     );
