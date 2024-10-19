@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import 'package:just_audio/just_audio.dart';
+import 'dart:ui';
 
 class MeditationScreen extends StatefulWidget {
   const MeditationScreen({Key? key}) : super(key: key);
@@ -25,12 +26,25 @@ class _MeditationScreenState extends State<MeditationScreen>
   String _selectedSound = 'none';
   bool _isLoading = false;
 
+  // Add these new state variables
+  bool _isBinaural = false;
+  double _binauralFrequency = 7.83; // Default to Schumann resonance
+  bool _isNatureSoundsEnabled = false;
+  String _selectedNatureSound = 'rain';
+
   final Map<String, String> _soundUrls = {
     'rainforest':
         'https://soundbible.com/mp3/rainforest_ambience-GlorySunz-1938133500.mp3',
     'ocean': 'https://soundbible.com/mp3/Ocean_Waves-Mike_Koenig-980635527.mp3',
     'white_noise':
         'https://soundbible.com/mp3/White_Noise_TV_Static-SoundBible.com-897772304.mp3',
+    'fireplace': 'https://soundbible.com/mp3/Fire_Burning-JaBa-810606813.mp3',
+    'thunder':
+        'https://soundbible.com/mp3/Thunder_Crack-Mike_Koenig-1661117150.mp3',
+    'birds':
+        'https://soundbible.com/mp3/Morning_Birds_2-Tomasz_Budzynski-1690704083.mp3',
+    'wind': 'https://soundbible.com/mp3/wind-howling-daniel_simon.mp3',
+    'stream': 'https://soundbible.com/mp3/Creek-SoundBible.com-2007778707.mp3',
   };
 
   @override
@@ -107,6 +121,16 @@ class _MeditationScreenState extends State<MeditationScreen>
         );
       }
     }
+
+    // Implement binaural beats generation if enabled
+    if (_isBinaural) {
+      // Add logic to generate and play binaural beats
+    }
+
+    // Implement nature sounds playback if enabled
+    if (_isNatureSoundsEnabled) {
+      // Add logic to play selected nature sound
+    }
   }
 
   Future<void> _pauseMeditation() async {
@@ -157,73 +181,66 @@ class _MeditationScreenState extends State<MeditationScreen>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        if (isPlaying) {
-          await _stopMeditation();
-        }
-        return true;
-      },
-      child: Scaffold(
-        backgroundColor: AppColors.bg100,
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 20),
-                        _buildMeditationCard(),
-                        const SizedBox(height: 30),
-                        _buildDurationSelector(),
-                        const SizedBox(height: 30),
-                        _buildAmbientSoundSelector(),
-                        const SizedBox(height: 30),
-                        _buildBenefits(),
-                        const SizedBox(height: 30),
-                        _buildTips(),
-                      ],
-                    ),
+    return Scaffold(
+      backgroundColor: AppColors.bg100,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16),
+                      _buildMeditationCard(),
+                      const SizedBox(height: 24),
+                      _buildSectionTitle('Duration'),
+                      const SizedBox(height: 8),
+                      _buildDurationSelector(),
+                      const SizedBox(height: 24),
+                      _buildSectionTitle('Ambient Sound'),
+                      const SizedBox(height: 8),
+                      _buildAmbientSoundSelector(),
+                      const SizedBox(height: 24),
+                      _buildSectionTitle('Sound Enhancements'),
+                      const SizedBox(height: 8),
+                      _buildBinauralBeatsControl(),
+                      const SizedBox(height: 16),
+                      _buildNatureSoundsControl(),
+                      const SizedBox(height: 24),
+                    ],
                   ),
                 ),
               ),
-              _buildControlButton(),
-            ],
-          ),
+            ),
+            _buildControlButton(),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, top: 16, bottom: 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon:
-                Icon(Icons.arrow_back_ios, color: AppColors.text100, size: 20),
-            onPressed: () => context.go('/'),
+            icon: Icon(Icons.arrow_back, color: AppColors.text100, size: 24),
+            onPressed: () => context.pop(), // Use context.pop() here
           ),
+          const SizedBox(width: 8),
           Text(
             'Meditation',
             style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
               color: AppColors.text100,
             ),
-          ),
-          IconButton(
-            icon: Icon(Icons.settings_outlined,
-                color: AppColors.text100, size: 20),
-            onPressed: () {}, // Add functionality for settings
           ),
         ],
       ),
@@ -231,125 +248,128 @@ class _MeditationScreenState extends State<MeditationScreen>
   }
 
   Widget _buildMeditationCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1),
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: AppColors.accent100.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(Icons.self_improvement,
-                color: AppColors.accent300, size: 40),
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Mindful Breathing',
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.text100,
-                  ),
+          child: Row(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: AppColors.accent200.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Focus on your breath and find inner peace',
-                  style: TextStyle(fontSize: 14, color: AppColors.text200),
-                ),
-                const SizedBox(height: 8),
-                Row(
+                child:
+                    Icon(Icons.self_improvement, color: Colors.white, size: 30),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildMeditationTag('Beginner'),
-                    const SizedBox(width: 8),
-                    _buildMeditationTag('Relaxation'),
+                    Text(
+                      'Mindful Breathing',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.text100,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Focus on your breath',
+                      style: TextStyle(fontSize: 14, color: AppColors.text200),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        _buildMeditationTag('Beginner'),
+                        const SizedBox(width: 8),
+                        _buildMeditationTag('5-30 min'),
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildMeditationTag(String tag) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.accent100.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1),
       ),
       child: Text(
         tag,
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w500,
-          color: AppColors.accent300,
+          color: AppColors.accent200,
         ),
       ),
     );
   }
 
   Widget _buildDurationSelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Duration',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: AppColors.text100,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              child: Row(
+                children: [5, 10, 15, 20, 25, 30].map((duration) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: _buildDurationCard(duration),
+                  );
+                }).toList(),
+              ),
+            ),
           ),
         ),
-        const SizedBox(height: 12),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final buttonWidth = (constraints.maxWidth - 3 * 8) /
-                4; // 8 is the gap between buttons
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [5, 10, 15, 20].map((duration) {
-                return _buildDurationButton(duration, buttonWidth);
-              }).toList(),
-            );
-          },
-        ),
-      ],
+      ),
     );
   }
 
-  Widget _buildDurationButton(int duration, double width) {
+  Widget _buildDurationCard(int duration) {
     final isSelected = duration == selectedDuration;
     return GestureDetector(
       onTap: () => setState(() => selectedDuration = duration),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: width,
-        padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Container(
+        width: 60,
+        height: 60,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.accent200 : Colors.white,
+          color:
+              isSelected ? AppColors.accent200 : Colors.white.withOpacity(0.6),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? AppColors.accent200 : AppColors.bg300,
+            color:
+                isSelected ? AppColors.accent200 : Colors.grey.withOpacity(0.2),
             width: 1,
           ),
           boxShadow: isSelected
@@ -361,142 +381,124 @@ class _MeditationScreenState extends State<MeditationScreen>
                 ]
               : null,
         ),
-        child: Text(
-          '$duration min',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: isSelected ? Colors.white : AppColors.text200,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAmbientSoundSelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Ambient Sound',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: AppColors.text100,
-          ),
-        ),
-        const SizedBox(height: 12),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final buttonWidth = (constraints.maxWidth - 3 * 8) / 2;
-            return Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _buildAmbientSoundButton(
-                    'Rainforest', Icons.forest, buttonWidth),
-                _buildAmbientSoundButton('Ocean', Icons.waves, buttonWidth),
-                _buildAmbientSoundButton(
-                    'White Noise', Icons.noise_control_off, buttonWidth),
-              ],
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAmbientSoundButton(String label, IconData icon, double width) {
-    final isSelected = _selectedSound == label.toLowerCase();
-    return SizedBox(
-      width: width,
-      child: ElevatedButton(
-        onPressed: () => _selectSound(label.toLowerCase()),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected ? AppColors.accent200 : Colors.white,
-          foregroundColor: isSelected ? Colors.white : AppColors.text200,
-          padding: EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-                color: isSelected ? AppColors.accent200 : AppColors.bg300),
-          ),
-          elevation: isSelected ? 4 : 2,
-          shadowColor: Colors.black.withOpacity(0.1),
-        ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon,
-                color: isSelected ? Colors.white : AppColors.accent300,
-                size: 24),
-            SizedBox(height: 8),
-            Text(label, style: TextStyle(fontSize: 12)),
+            Text(
+              '$duration',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? Colors.white : AppColors.accent200,
+              ),
+            ),
+            Text(
+              'min',
+              style: TextStyle(
+                fontSize: 10,
+                color: isSelected ? Colors.white : AppColors.text100,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildBenefits() {
-    return _buildCard(
-      title: 'Benefits',
-      content: Column(
-        children: [
-          _buildBenefitItem(Icons.spa, 'Reduces stress and anxiety'),
-          _buildBenefitItem(Icons.favorite, 'Improves emotional well-being'),
-          _buildBenefitItem(Icons.psychology, 'Enhances self-awareness'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBenefitItem(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.accent200, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(fontSize: 14, color: AppColors.text200),
+  Widget _buildAmbientSoundSelector() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              child: Row(
+                children: [
+                  _buildAmbientSoundCard('Rainforest', Icons.forest),
+                  _buildAmbientSoundCard('Ocean', Icons.waves),
+                  _buildAmbientSoundCard(
+                      'White Noise', Icons.noise_control_off),
+                  _buildAmbientSoundCard('Fireplace', Icons.fireplace),
+                  _buildAmbientSoundCard('Thunder', Icons.thunderstorm),
+                  _buildAmbientSoundCard('Birds', Icons.flutter_dash),
+                  _buildAmbientSoundCard('Wind', Icons.air),
+                  _buildAmbientSoundCard('Stream', Icons.water),
+                ]
+                    .map((widget) => Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: widget,
+                        ))
+                    .toList(),
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildTips() {
-    return _buildCard(
-      title: 'Tips for Better Meditation',
-      content: Column(
-        children: [
-          _buildTipItem('Find a quiet and comfortable place'),
-          _buildTipItem('Sit in a relaxed position'),
-          _buildTipItem('Focus on your breath'),
-          _buildTipItem('Be patient and kind to yourself'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTipItem(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Icon(Icons.check_circle, color: AppColors.accent200, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(fontSize: 14, color: AppColors.text200),
-            ),
+  Widget _buildAmbientSoundCard(String label, IconData icon) {
+    final isSelected = _selectedSound == label.toLowerCase();
+    return GestureDetector(
+      onTap: () => _selectSound(label.toLowerCase()),
+      child: Container(
+        width: 70,
+        height: 70,
+        decoration: BoxDecoration(
+          color:
+              isSelected ? AppColors.accent200 : Colors.white.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color:
+                isSelected ? AppColors.accent200 : Colors.grey.withOpacity(0.2),
+            width: 1,
           ),
-        ],
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                      color: AppColors.accent200.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: Offset(0, 4))
+                ]
+              : null,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon,
+                color: isSelected ? Colors.white : AppColors.accent200,
+                size: 24),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? Colors.white : AppColors.text100,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: GoogleFonts.poppins(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: AppColors.text100,
       ),
     );
   }
@@ -536,54 +538,234 @@ class _MeditationScreenState extends State<MeditationScreen>
   Widget _buildControlButton() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: GestureDetector(
-        onTap: _isLoading ? null : _togglePlay,
-        child: Container(
-          height: 56,
-          decoration: BoxDecoration(
-            color: _isLoading
-                ? AppColors.accent100
-                : (isPlaying ? AppColors.accent100 : AppColors.accent200),
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.accent200.withOpacity(0.2),
-                blurRadius: 8,
-                offset: Offset(0, 2),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(16),
+              border:
+                  Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+            ),
+            child: GestureDetector(
+              onTap: _isLoading ? null : _togglePlay,
+              child: Container(
+                height: 56,
+                decoration: BoxDecoration(
+                  color: _isLoading
+                      ? AppColors.bg100.withOpacity(0.8)
+                      : (isPlaying
+                          ? AppColors.bg100.withOpacity(0.8)
+                          : Colors.white),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (_isLoading)
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.accent200),
+                          strokeWidth: 2,
+                        ),
+                      )
+                    else
+                      AnimatedIcon(
+                        icon: AnimatedIcons.play_pause,
+                        progress: isPlaying
+                            ? AlwaysStoppedAnimation(1.0)
+                            : AlwaysStoppedAnimation(0.0),
+                        color: AppColors.accent200,
+                        size: 24,
+                      ),
+                    SizedBox(width: 12),
+                    Text(
+                      _isLoading
+                          ? 'Loading...'
+                          : (isPlaying ? timerString : 'Start Meditation'),
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.text100,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (_isLoading)
-                SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    strokeWidth: 2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBinauralBeatsControl() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Binaural Beats',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.text100,
+                      ),
+                    ),
+                    _buildCustomSwitch(_isBinaural, (value) {
+                      setState(() {
+                        _isBinaural = value;
+                      });
+                      // Implement binaural beats generation
+                    }),
+                  ],
+                ),
+                if (_isBinaural) ...[
+                  SizedBox(height: 8),
+                  Text(
+                    'Frequency: ${_binauralFrequency.toStringAsFixed(2)} Hz',
+                    style: TextStyle(fontSize: 12, color: AppColors.text200),
                   ),
-                )
-              else
-                Icon(
-                  isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                  color: Colors.white,
-                  size: 24,
+                  Slider(
+                    value: _binauralFrequency,
+                    min: 0.5,
+                    max: 40,
+                    divisions: 79,
+                    onChanged: (value) {
+                      setState(() {
+                        _binauralFrequency = value;
+                      });
+                      // Update binaural beats frequency
+                    },
+                    activeColor: AppColors.accent200,
+                    inactiveColor: AppColors.accent200.withOpacity(0.3),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNatureSoundsControl() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Nature Sounds',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.text100,
+                      ),
+                    ),
+                    _buildCustomSwitch(_isNatureSoundsEnabled, (value) {
+                      setState(() {
+                        _isNatureSoundsEnabled = value;
+                      });
+                      // Implement nature sounds playback
+                    }),
+                  ],
                 ),
-              SizedBox(width: 8),
-              Text(
-                _isLoading
-                    ? 'Loading...'
-                    : (isPlaying ? timerString : 'Start Meditation'),
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                if (_isNatureSoundsEnabled) ...[
+                  SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children:
+                        ['rain', 'ocean', 'forest', 'stream'].map((sound) {
+                      return ChoiceChip(
+                        label: Text(sound),
+                        selected: _selectedNatureSound == sound,
+                        onSelected: (selected) {
+                          setState(() {
+                            _selectedNatureSound = sound;
+                          });
+                          // Update nature sound selection
+                        },
+                        backgroundColor: Colors.white.withOpacity(0.2),
+                        selectedColor: AppColors.accent200,
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomSwitch(bool value, Function(bool) onChanged) {
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      child: Container(
+        width: 50,
+        height: 28,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          color: value ? AppColors.accent200 : Colors.grey.withOpacity(0.3),
+        ),
+        child: Stack(
+          children: [
+            AnimatedPositioned(
+              duration: Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              left: value ? 22 : 2,
+              top: 2,
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
                   color: Colors.white,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

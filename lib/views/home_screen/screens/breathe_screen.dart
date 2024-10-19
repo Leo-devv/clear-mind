@@ -133,7 +133,7 @@ class _BreatheScreenState extends State<BreatheScreen>
           IconButton(
             icon:
                 Icon(Icons.arrow_back_ios, color: AppColors.text100, size: 20),
-            onPressed: () => context.go('/'),
+            onPressed: () => Navigator.of(context).pop(),
           ),
           Text(
             'Breathe',
