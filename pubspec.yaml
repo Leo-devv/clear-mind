@@ -49,6 +49,8 @@ dependencies:
   supercharged: ^2.1.1
   flutter_animate: ^4.5.0
   simple_animations: ^5.0.2
+  flutter_feather_icons: ^2.0.0+1
+  modal_bottom_sheet: ^3.0.0
 
 dev_dependencies:
   flutter_test:
