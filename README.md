@@ -1,5 +1,6 @@
 # Clear Mind - Your Stress Relief Companion
-![smartmockups_m2g1m8wx](https://github.com/user-attachments/assets/686edbe8-bbf9-4b46-a675-62c16fb94900)
+
+![jnkjnkjn](https://github.com/user-attachments/assets/1674ad80-87c9-4922-a193-10766201a63a)
 
 
 Welcome to **Clear Mind**, a wellness app designed specifically to help students manage stress with meditation, relaxation techniques, calming sounds, and smart AI-based emotional analysis. Available on both iOS and Android, Clear Mind is your all-in-one solution for achieving a balanced mind.
