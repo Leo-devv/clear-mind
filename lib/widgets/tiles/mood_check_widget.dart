@@ -1,10 +1,11 @@
 import 'package:clear_mind/views/home_screen/body.dart';
 import 'package:clear_mind/widgets/decorators/container.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:flutter/cupertino.dart';
+import 'dart:math' as math;
+import 'package:clear_mind/screens/mood_log_screen.dart';
 
 class MoodCheckWidget extends StatelessWidget {
   const MoodCheckWidget({Key? key}) : super(key: key);
@@ -12,56 +13,59 @@ class MoodCheckWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 16 / 9, // This creates a 16:9 aspect ratio
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF9C27B0), Color(0xFFE91E63)],
-          ),
+      aspectRatio: 16 / 9,
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MoodLogScreen()),
         ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 15),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'How are you today?',
-                style: GoogleFonts.poppins(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildMoodIcon('Unhappy', Icons.sentiment_very_dissatisfied),
-                  _buildMoodIcon('Stressed', Icons.sentiment_dissatisfied),
-                  _buildMoodIcon('Fine', Icons.sentiment_neutral),
-                  _buildMoodIcon('Relaxed', Icons.sentiment_satisfied),
-                  _buildMoodIcon('Excited', Icons.sentiment_very_satisfied),
-                ],
-              ),
-              ElevatedButton(
-                onPressed: () => _showMoodLogModal(context),
-                child: Text('View Journal'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Color(0xFF9C27B0),
-                  minimumSize: Size(double.infinity, 40),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  textStyle: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+        child: CustomPaint(
+          painter: MoodCheckPainter(),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'How are you feeling today?',
+                  style: GoogleFonts.poppins(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
-              ),
-            ],
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildMoodIcon(
+                        'Unhappy', Icons.sentiment_very_dissatisfied),
+                    _buildMoodIcon('Stressed', Icons.sentiment_dissatisfied),
+                    _buildMoodIcon('Fine', Icons.sentiment_neutral),
+                    _buildMoodIcon('Relaxed', Icons.sentiment_satisfied),
+                    _buildMoodIcon('Excited', Icons.sentiment_very_satisfied),
+                  ],
+                ),
+                ElevatedButton(
+                  onPressed: () => _showMoodLogModal(context),
+                  child: Text(
+                    'View Mood Journal',
+                    style: TextStyle(color: Color(0xFF1E3A8A)),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Color(0xFF1E3A8A),
+                    minimumSize: Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    textStyle: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -77,15 +81,15 @@ class MoodCheckWidget extends StatelessWidget {
           height: 60,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white,
+            color: Colors.white.withOpacity(0.2),
           ),
           child: Icon(
             icon,
-            color: Color(0xFF9C27B0),
+            color: Colors.white,
             size: 40,
           ),
         ),
-        SizedBox(height: 5),
+        SizedBox(height: 8),
         Text(
           label,
           style: GoogleFonts.poppins(
@@ -104,6 +108,93 @@ class MoodCheckWidget extends StatelessWidget {
     );
   }
 }
+
+class MoodCheckPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final rRect = RRect.fromRectAndRadius(rect, Radius.circular(20));
+
+    // Use the bluish gradient from the third featured tile
+    final gradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0xFF61A3FE), Color(0xFF63FFD5)],
+    );
+
+    final paint = Paint()..shader = gradient.createShader(rect);
+
+    canvas.drawRRect(rRect, paint);
+
+    // Draw multiple wavy lines with varying opacity
+    for (var i = 0; i < 4; i++) {
+      _drawWavyLine(canvas, size, i * 0.2, (i + 1) * 0.05);
+    }
+
+    // Add a subtle glow effect
+    final glowPaint = Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 20);
+    canvas.drawCircle(
+      Offset(size.width * 0.8, size.height * 0.2),
+      size.width * 0.3,
+      glowPaint,
+    );
+
+    // Draw decorative shapes
+    _drawDecorativeShapes(canvas, size);
+  }
+
+  void _drawWavyLine(Canvas canvas, Size size, double yOffset, double opacity) {
+    final wavePaint = Paint()
+      ..color = Colors.white.withOpacity(opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    final path = Path();
+    path.moveTo(0, size.height * (0.2 + yOffset));
+    for (var x = 0; x <= size.width; x++) {
+      final y = math.sin((x / size.width) * 4 * math.pi) * 8 +
+          size.height * (0.2 + yOffset);
+      path.lineTo(x.toDouble(), y);
+    }
+    canvas.drawPath(path, wavePaint);
+  }
+
+  void _drawDecorativeShapes(Canvas canvas, Size size) {
+    final shapePaint = Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..style = PaintingStyle.fill;
+
+    // Draw a larger circle
+    canvas.drawCircle(
+      Offset(size.width * 0.9, size.height * 0.2),
+      size.width * 0.2,
+      shapePaint,
+    );
+
+    // Draw a smaller circle
+    canvas.drawCircle(
+      Offset(size.width * 0.1, size.height * 0.8),
+      size.width * 0.1,
+      shapePaint,
+    );
+
+    // Draw a rounded rectangle
+    final rrectPath = Path()
+      ..addRRect(RRect.fromRectAndRadius(
+        Rect.fromLTWH(size.width * 0.6, size.height * 0.6, size.width * 0.3,
+            size.height * 0.3),
+        Radius.circular(15),
+      ));
+    canvas.drawPath(rrectPath, shapePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// ... (keep the existing MoodLogModal class)
 
 class MoodLogModal extends StatelessWidget {
   @override

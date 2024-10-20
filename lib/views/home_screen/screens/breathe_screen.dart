@@ -1,9 +1,9 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:clear_mind/styles/colors.dart';
+import 'package:clear_mind/widgets/decorators/container.dart';
 
 class BreatheScreen extends StatefulWidget {
   const BreatheScreen({Key? key}) : super(key: key);
@@ -16,13 +16,23 @@ class _BreatheScreenState extends State<BreatheScreen>
     with TickerProviderStateMixin {
   late AnimationController _breatheController;
   late Animation<double> _breatheAnimation;
-  late AnimationController _backgroundController;
-  late Animation<Color?> _backgroundAnimation;
 
   bool _isBreathing = false;
   String _currentPhase = 'Tap to begin';
   int _breathCount = 0;
-  int _selectedDuration = 5;
+  String _selectedPattern = 'Calm';
+
+  final Map<String, Map<String, dynamic>> _breathingPatterns = {
+    'Calm': {'icon': Icons.spa, 'inhale': 4, 'hold': 7, 'exhale': 8},
+    'Energize': {'icon': Icons.bolt, 'inhale': 6, 'hold': 0, 'exhale': 2},
+    'Focus': {
+      'icon': Icons.center_focus_strong,
+      'inhale': 4,
+      'hold': 4,
+      'exhale': 4
+    },
+    'Relax': {'icon': Icons.beach_access, 'inhale': 4, 'hold': 4, 'exhale': 6},
+  };
 
   @override
   void initState() {
@@ -34,20 +44,11 @@ class _BreatheScreenState extends State<BreatheScreen>
     _breatheAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
       CurvedAnimation(parent: _breatheController, curve: Curves.easeInOut),
     );
-    _backgroundController = AnimationController(
-      duration: const Duration(seconds: 60),
-      vsync: this,
-    )..repeat(reverse: true);
-    _backgroundAnimation = ColorTween(
-      begin: AppColors.bg100,
-      end: AppColors.bg200,
-    ).animate(_backgroundController);
   }
 
   @override
   void dispose() {
     _breatheController.dispose();
-    _backgroundController.dispose();
     super.dispose();
   }
 
@@ -67,59 +68,62 @@ class _BreatheScreenState extends State<BreatheScreen>
   void _breathe() {
     if (!_isBreathing) return;
 
+    final pattern = _breathingPatterns[_selectedPattern]!;
+
     setState(() => _currentPhase = 'Inhale');
     HapticFeedback.lightImpact();
+    _breatheController.duration = Duration(seconds: pattern['inhale']!);
     _breatheController.forward().then((_) {
       if (!_isBreathing) return;
-      setState(() => _currentPhase = 'Hold');
-      Future.delayed(Duration(seconds: 4), () {
-        if (!_isBreathing) return;
+      if (pattern['hold']! > 0) {
+        setState(() => _currentPhase = 'Hold');
+        Future.delayed(Duration(seconds: pattern['hold']!), () {
+          if (!_isBreathing) return;
+          setState(() => _currentPhase = 'Exhale');
+          HapticFeedback.lightImpact();
+          _breatheController.duration = Duration(seconds: pattern['exhale']!);
+          _breatheController.reverse().then((_) {
+            if (!_isBreathing) return;
+            setState(() {
+              _breathCount++;
+              _currentPhase = 'Hold';
+            });
+            Future.delayed(Duration(seconds: 1), () {
+              _breathe();
+            });
+          });
+        });
+      } else {
         setState(() => _currentPhase = 'Exhale');
         HapticFeedback.lightImpact();
+        _breatheController.duration = Duration(seconds: pattern['exhale']!);
         _breatheController.reverse().then((_) {
           if (!_isBreathing) return;
           setState(() {
             _breathCount++;
-            _currentPhase = 'Hold';
           });
-          Future.delayed(Duration(seconds: 4), () {
+          Future.delayed(Duration(seconds: 1), () {
             _breathe();
           });
         });
-      });
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimatedBuilder(
-        animation: _backgroundAnimation,
-        builder: (context, child) {
-          return Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  _backgroundAnimation.value!,
-                  AppColors.bg100,
-                ],
-              ),
+      backgroundColor: AppColors.bg100,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildTopBar(context),
+            Expanded(
+              child: _buildBreathingContent(),
             ),
-            child: SafeArea(
-              child: Column(
-                children: [
-                  _buildTopBar(context),
-                  Expanded(
-                    child: _buildBreathingContent(),
-                  ),
-                  _buildBottomBar(),
-                ],
-              ),
-            ),
-          );
-        },
+            _buildBottomSection(),
+          ],
+        ),
       ),
     );
   }
@@ -131,20 +135,19 @@ class _BreatheScreenState extends State<BreatheScreen>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon:
-                Icon(Icons.arrow_back_ios, color: AppColors.text100, size: 20),
-            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(Icons.arrow_back, color: AppColors.text100, size: 24),
+            onPressed: () => context.pop(),
           ),
           Text(
             'Breathe',
             style: GoogleFonts.poppins(
               fontSize: 20,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
               color: AppColors.text100,
             ),
           ),
           IconButton(
-            icon: Icon(Icons.info_outline, color: AppColors.text100, size: 20),
+            icon: Icon(Icons.info_outline, color: AppColors.text100, size: 24),
             onPressed: () {
               // TODO: Show info modal
             },
@@ -158,16 +161,7 @@ class _BreatheScreenState extends State<BreatheScreen>
     return GestureDetector(
       onTap: _toggleBreathing,
       child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildBreathingAnimation(),
-            SizedBox(height: 40),
-            _buildPhaseText(),
-            SizedBox(height: 20),
-            _buildDurationSelector(),
-          ],
-        ),
+        child: _buildBreathingAnimation(),
       ),
     );
   }
@@ -181,28 +175,19 @@ class _BreatheScreenState extends State<BreatheScreen>
           height: 250 * _breatheAnimation.value,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [
-                AppColors.primary100.withOpacity(0.7),
-                AppColors.primary200.withOpacity(0.3),
-              ],
-              stops: [0.5, 1.0],
+            color: AppColors.accent200.withOpacity(0.1),
+            border: Border.all(
+              color: AppColors.accent200.withOpacity(0.5),
+              width: 2,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary100.withOpacity(0.3),
-                blurRadius: 20,
-                spreadRadius: 5,
-              ),
-            ],
           ),
           child: Center(
             child: Text(
               _currentPhase,
               style: GoogleFonts.poppins(
                 fontSize: 24,
-                fontWeight: FontWeight.w300,
-                color: AppColors.text100,
+                fontWeight: FontWeight.w500,
+                color: AppColors.accent200,
               ),
             ),
           ),
@@ -211,92 +196,128 @@ class _BreatheScreenState extends State<BreatheScreen>
     );
   }
 
-  Widget _buildPhaseText() {
-    return AnimatedSwitcher(
-      duration: Duration(milliseconds: 500),
-      child: Text(
-        'Breath count: $_breathCount',
-        key: ValueKey(_breathCount),
-        style: GoogleFonts.poppins(
-          fontSize: 18,
-          fontWeight: FontWeight.w300,
-          color: AppColors.text200,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDurationSelector() {
+  Widget _buildBottomSection() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: AppColors.bg300.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.bg200,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
-      child: DropdownButton<int>(
-        value: _selectedDuration,
-        items: [5, 10, 15, 20].map((int value) {
-          return DropdownMenuItem<int>(
-            value: value,
-            child: Text(
-              '$value min',
-              style: GoogleFonts.poppins(color: AppColors.text100),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start, // Align children to start
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildBreathCount(),
+          SizedBox(height: 20),
+          _buildPatternSelector(),
+          SizedBox(height: 20),
+          _buildStartStopButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBreathCount() {
+    return GlassContainer(
+      borderRadius: 16,
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.air, color: AppColors.accent200),
+          SizedBox(width: 8),
+          Text(
+            'Breath Count: $_breathCount',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.text100,
             ),
-          );
-        }).toList(),
-        onChanged: (int? newValue) {
-          if (newValue != null) {
-            setState(() {
-              _selectedDuration = newValue;
-            });
-          }
-        },
-        dropdownColor: AppColors.bg300,
-        style: GoogleFonts.poppins(color: AppColors.text100),
-        underline: SizedBox(),
-        icon: Icon(Icons.arrow_drop_down, color: AppColors.text100),
-      ),
-    );
-  }
-
-  Widget _buildBottomBar() {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-      child: _buildBreathingButton(),
-    );
-  }
-
-  Widget _buildBreathingButton() {
-    return GestureDetector(
-      onTap: _toggleBreathing,
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 300),
-        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: _isBreathing
-                ? [AppColors.accent200, AppColors.accent100]
-                : [AppColors.primary200, AppColors.primary100],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: _isBreathing
-                  ? AppColors.accent200.withOpacity(0.3)
-                  : AppColors.primary200.withOpacity(0.3),
-              blurRadius: 8,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Text(
-          _isBreathing ? 'Stop' : 'Start',
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPatternSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'How do you want to feel?',
           style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: AppColors.bg100,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: AppColors.text200,
+          ),
+        ),
+        SizedBox(height: 8),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: _breathingPatterns.entries.map((entry) {
+            final pattern = entry.key;
+            final icon = entry.value['icon'] as IconData;
+            return Tooltip(
+              message: pattern,
+              child: ChoiceChip(
+                label: Icon(
+                  icon,
+                  color: _selectedPattern == pattern
+                      ? AppColors.bg100
+                      : AppColors.accent200,
+                  size: 24,
+                ),
+                selected: _selectedPattern == pattern,
+                onSelected: (selected) {
+                  if (selected) {
+                    setState(() {
+                      _selectedPattern = pattern;
+                    });
+                  }
+                },
+                selectedColor: AppColors.accent200,
+                backgroundColor: Colors.white,
+                padding: EdgeInsets.all(8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStartStopButton() {
+    return GlassContainer(
+      borderRadius: 16,
+      child: GestureDetector(
+        onTap: _toggleBreathing,
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 4), // Further reduced height
+          width: double.infinity,
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  _isBreathing ? Icons.stop : Icons.play_arrow,
+                  color: AppColors.accent200,
+                  size: 22, // Slightly reduced icon size
+                ),
+                SizedBox(width: 8),
+                Text(
+                  _isBreathing ? 'Stop' : 'Start Breathing',
+                  style: GoogleFonts.poppins(
+                    fontSize: 15, // Further reduced font size
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.accent200,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

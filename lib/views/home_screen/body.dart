@@ -1,5 +1,7 @@
 import 'dart:ui';
+import 'dart:math' as math;
 
+import 'package:clear_mind/styles/colors.dart';
 import 'package:clear_mind/widgets/tiles/mood_check_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -34,11 +36,11 @@ class HomeScreenBody extends StatelessWidget {
               delegate: SliverChildListDelegate([
                 _buildHeader(),
                 const SizedBox(height: 20),
-                MoodCheckWidget(), // Use the new widget here
+                MoodCheckWidget(),
                 const SizedBox(height: 24),
                 _buildQuickActions(context),
                 const SizedBox(height: 24),
-                _buildDailyGoals(),
+                _buildFeaturedContent(context),
                 const SizedBox(height: 24),
                 _buildMeditationSection(),
               ]),
@@ -118,6 +120,14 @@ class HomeScreenBody extends StatelessWidget {
   }
 
   Widget _buildQuickActions(BuildContext context) {
+    // Define a new color palette
+    final tileColors = [
+      Color(0xFF64B5F6), // Light Blue
+      Color(0xFF81C784), // Light Green
+      Color(0xFFFFB74D), // Light Orange
+      Color(0xFFBA68C8), // Light Purple
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -132,51 +142,64 @@ class HomeScreenBody extends StatelessWidget {
         const SizedBox(height: 16),
         LayoutBuilder(
           builder: (context, constraints) {
-            final itemWidth = (constraints.maxWidth - 12) / 2;
-            final itemHeight = itemWidth * 0.6;
-            return Wrap(
-              spacing: 12,
-              runSpacing: 12,
+            final maxWidth = constraints.maxWidth;
+            final baseHeight = maxWidth * 0.3;
+            return Column(
               children: [
-                _buildQuickActionItem(
-                  context,
-                  Icons.self_improvement,
-                  'Meditate',
-                  '/meditation',
-                  HomeTheme.primary,
-                  [Icons.spa, Icons.air, Icons.waves],
-                  width: itemWidth,
-                  height: itemHeight,
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: _buildQuickActionItem(
+                        context,
+                        Icons.spa,
+                        'Meditate',
+                        '/meditation',
+                        tileColors[0],
+                        height: baseHeight * 1.2,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      flex: 2,
+                      child: _buildQuickActionItem(
+                        context,
+                        Icons.edit,
+                        'Journal',
+                        '/journal',
+                        tileColors[1],
+                        height: baseHeight * 1.2,
+                      ),
+                    ),
+                  ],
                 ),
-                _buildQuickActionItem(
-                  context,
-                  Icons.edit_note_rounded,
-                  'Journal',
-                  '/journal',
-                  HomeTheme.secondary,
-                  [Icons.book, Icons.create, Icons.mood],
-                  width: itemWidth,
-                  height: itemHeight,
-                ),
-                _buildQuickActionItem(
-                  context,
-                  Icons.air_rounded,
-                  'Breathe',
-                  '/breathe',
-                  HomeTheme.accent,
-                  [Icons.favorite, Icons.cloud, Icons.nature],
-                  width: itemWidth,
-                  height: itemHeight,
-                ),
-                _buildQuickActionItem(
-                  context,
-                  Icons.psychology_alt_rounded,
-                  'Therapy',
-                  '/therapy',
-                  HomeTheme.accent,
-                  [Icons.chat_bubble, Icons.people, Icons.healing],
-                  width: itemWidth,
-                  height: itemHeight,
+                SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: _buildQuickActionItem(
+                        context,
+                        Icons.air,
+                        'Breathe',
+                        '/breathe',
+                        tileColors[2],
+                        height: baseHeight,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      flex: 3,
+                      child: _buildQuickActionItem(
+                        context,
+                        Icons.psychology,
+                        'Therapy',
+                        '/therapy',
+                        tileColors[3],
+                        height: baseHeight,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             );
@@ -191,68 +214,42 @@ class HomeScreenBody extends StatelessWidget {
     IconData icon,
     String label,
     String route,
-    Color color,
-    List<IconData> smallIcons, {
-    required double width,
+    Color color, {
     required double height,
   }) {
     return GestureDetector(
       onTap: () => context.go(route),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            width: width,
-            height: height,
-            decoration: BoxDecoration(
-              color: HomeTheme.cardBackground.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Colors.grey.withOpacity(0.2),
-                width: 1,
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    label,
-                    style: GoogleFonts.poppins(
-                      color: HomeTheme.text,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+      child: Container(
+        height: height,
+        child: CustomPaint(
+          painter: QuickActionPainter(color),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: smallIcons
-                            .map((smallIcon) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 4),
-                                  child: Icon(
-                                    smallIcon,
-                                    color: HomeTheme.textLight,
-                                    size: 12,
-                                  ),
-                                ))
-                            .toList(),
-                      ),
-                      Icon(
-                        icon,
-                        color: color,
-                        size: 28,
-                      ),
-                    ],
+                  child: Icon(
+                    icon,
+                    color: Colors.white,
+                    size: 24,
                   ),
-                ],
-              ),
+                ),
+                Text(
+                  label,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -260,22 +257,46 @@ class HomeScreenBody extends StatelessWidget {
     );
   }
 
-  Widget _buildDailyGoals() {
+  Widget _buildFeaturedContent(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Daily Goals'),
+        Text(
+          'Featured for You',
+          style: GoogleFonts.poppins(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: HomeTheme.text,
+          ),
+        ),
         const SizedBox(height: 16),
-        GlassContainer(
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildGoalItem('Meditate', '10 min', 0.6, Icons.self_improvement,
-                  HomeTheme.primary),
-              _buildGoalItem('Journal', '1 entry', 1.0, Icons.edit_note_rounded,
-                  HomeTheme.secondary),
-              _buildGoalItem('Gratitude', '3 things', 0.3,
-                  Icons.favorite_outline, HomeTheme.accent),
+              _buildFeaturedItem(
+                context,
+                'Mindful Breathing',
+                'Learn a simple technique to reduce stress',
+                Icons.air,
+                [Color(0xFF6448FE), Color(0xFF5FC6FF)],
+              ),
+              SizedBox(width: 16),
+              _buildFeaturedItem(
+                context,
+                'Gratitude Journal',
+                'Boost your mood with daily gratitude',
+                Icons.favorite,
+                [Color(0xFFFE6197), Color(0xFFFFB463)],
+              ),
+              SizedBox(width: 16),
+              _buildFeaturedItem(
+                context,
+                'Sleep Stories',
+                'Relax and fall asleep with calming stories',
+                Icons.nightlight_round,
+                [Color(0xFF61A3FE), Color(0xFF63FFD5)],
+              ),
             ],
           ),
         ),
@@ -283,69 +304,65 @@ class HomeScreenBody extends StatelessWidget {
     );
   }
 
-  Widget _buildGoalItem(String title, String subtitle, double progress,
-      IconData icon, Color color) {
-    return Column(
-      children: [
-        Stack(
-          alignment: Alignment.center,
+  Widget _buildFeaturedItem(
+    BuildContext context,
+    String title,
+    String description,
+    IconData icon,
+    List<Color> gradientColors,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        // TODO: Implement navigation to featured content
+      },
+      child: Container(
+        width: 200,
+        height: 250,
+        child: Stack(
           children: [
-            ClipOval(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: color.withOpacity(0.15),
-                  ),
-                  child: CustomPaint(
-                    painter: GlassyCircularProgressPainter(
-                      progress: progress,
-                      color: color,
-                    ),
-                  ),
-                ),
+            Positioned.fill(
+              child: CustomPaint(
+                painter: FeatureCardPainter(gradientColors),
               ),
             ),
-            ClipOval(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                child: Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: color.withOpacity(0.2),
-                    border: Border.all(
-                      color: Colors.grey.withOpacity(0.2),
-                      width: 1.5,
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(icon, color: Colors.white, size: 32),
+                  ),
+                  Spacer(),
+                  Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  child: Icon(icon, color: color.withOpacity(0.8), size: 28),
-                ),
+                  SizedBox(height: 8),
+                  Text(
+                    description,
+                    style: GoogleFonts.poppins(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 14,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        Text(
-          title,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: HomeTheme.text,
-          ),
-        ),
-        Text(
-          subtitle,
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            color: HomeTheme.textLight,
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -478,4 +495,128 @@ class GlassyCircularProgressPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class FeatureCardPainter extends CustomPainter {
+  final List<Color> gradientColors;
+
+  FeatureCardPainter(this.gradientColors);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final rRect = RRect.fromRectAndRadius(rect, Radius.circular(20));
+
+    final paint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: gradientColors,
+      ).createShader(rect);
+
+    canvas.drawRRect(rRect, paint);
+
+    final wavePaint = Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+
+    final path = Path();
+    for (var i = 0; i < 3; i++) {
+      path.reset();
+      path.moveTo(0, size.height * (0.5 + i * 0.2));
+      for (var x = 0; x <= size.width; x++) {
+        final y = math.sin((x / size.width) * 4 * math.pi) * 10 +
+            size.height * (0.5 + i * 0.2);
+        path.lineTo(x.toDouble(), y);
+      }
+      canvas.drawPath(path, wavePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class QuickActionPainter extends CustomPainter {
+  final Color color;
+
+  QuickActionPainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final rRect = RRect.fromRectAndRadius(rect, Radius.circular(20));
+
+    // Create a base gradient
+    final baseGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        color.withOpacity(0.8),
+        color,
+      ],
+    );
+
+    final basePaint = Paint()
+      ..shader = baseGradient.createShader(rect)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawRRect(rRect, basePaint);
+
+    // Add a subtle glow effect
+    final glowPaint = Paint()
+      ..shader = RadialGradient(
+        center: Alignment(-0.5, -0.6),
+        radius: 1.0,
+        colors: [
+          color.withOpacity(0.3),
+          color.withOpacity(0.0),
+        ],
+      ).createShader(rect)
+      ..blendMode = BlendMode.screen;
+
+    canvas.drawRRect(rRect, glowPaint);
+
+    // Add improved subtle curved lines
+    final linePaint = Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    final path = Path();
+    path.moveTo(0, size.height * 0.3);
+    path.quadraticBezierTo(
+      size.width * 0.5,
+      size.height * 0.2,
+      size.width,
+      size.height * 0.5,
+    );
+
+    path.moveTo(0, size.height * 0.5);
+    path.quadraticBezierTo(
+      size.width * 0.5,
+      size.height * 0.8,
+      size.width,
+      size.height * 0.3,
+    );
+
+    canvas.drawPath(path, linePaint);
+
+    // Add a subtle overlay for depth
+    final overlayPaint = Paint()
+      ..color = Colors.white.withOpacity(0.05)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, size.height * 0.6, size.width, size.height * 0.4),
+        Radius.circular(20),
+      ),
+      overlayPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
