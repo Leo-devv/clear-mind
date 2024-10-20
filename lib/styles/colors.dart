@@ -2,32 +2,32 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Background colors
-  static const Color bg100 = Color(0xFFF8F9FA);
-  static const Color bg200 = Color(0xFFF1F3F5);
-  static const Color bg300 = Color(0xFFE9ECEF);
+  static const Color bg100 = Color(0xFFF5F7FA);
+  static const Color bg200 = Color(0xFFEAEEF3);
+  static const Color bg300 = Color(0xFFD8E1EB);
 
   // Text colors
-  static const Color text100 = Color(0xFF212529);
-  static const Color text200 = Color(0xFF495057);
-  static const Color text300 = Color(0xFF868E96);
+  static const Color text100 = Color(0xFF2C3E50);
+  static const Color text200 = Color(0xFF34495E);
+  static const Color text300 = Color(0xFF7F8C8D);
 
   // Primary colors
-  static const Color primary100 = Color(0xFFE7F5FF);
-  static const Color primary200 = Color(0xFFA5D8FF);
-  static const Color primary300 = Color(0xFF74C0FC);
+  static const Color primary100 = Color(0xFF3498DB);
+  static const Color primary200 = Color(0xFF2980B9);
+  static const Color primary300 = Color(0xFF1E6091);
 
-  // Accent colors (updated to pastel blue)
-  static const Color accent100 = Color(0xFFCCE9FF);
-  static const Color accent200 = Color(0xFF99D1FF);
-  static const Color accent300 = Color(0xFF66B9FF);
+  // Accent colors
+  static const Color accent100 = Color(0xFF61A3FE);
+  static const Color accent200 = Color.fromARGB(255, 73, 182, 255);
+  static const Color accent300 = Color(0xFF6448FE);
 
   // Semantic colors
-  static const Color success = Color(0xFF8CE99A);
-  static const Color warning = Color(0xFFFFD43B);
-  static const Color error = Color(0xFFFFA8A8);
+  static const Color success = Color(0xFF2ECC71);
+  static const Color warning = Color(0xFFF39C12);
+  static const Color error = Color(0xFFE74C3C);
 
   // Neutral shades
-  static const Color neutral100 = Color(0xFFDEE2E6);
-  static const Color neutral200 = Color(0xFFADB5BD);
-  static const Color neutral300 = Color(0xFF868E96);
+  static const Color neutral100 = Color(0xFFECF0F1);
+  static const Color neutral200 = Color(0xFFBDC3C7);
+  static const Color neutral300 = Color(0xFF95A5A6);
 }
