@@ -29,6 +29,7 @@ Clear Mind is built to help students cope with academic stress through mindfulne
 
 ![smartmockups_m2g1q8k4](https://github.com/user-attachments/assets/b9e34938-44e8-474d-848b-45b1dfa9d5d8)
 ![insight](https://github.com/user-attachments/assets/a7764751-1282-4e92-9462-0a302c71a475)
+![hjbjbjhb](https://github.com/user-attachments/assets/f2e871dc-90c2-42fd-a73e-f370770c81a4)
 
 ---
 
