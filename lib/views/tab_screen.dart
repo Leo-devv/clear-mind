@@ -42,14 +42,13 @@ class _TabScreenState extends State<TabScreen> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
           child: Container(
             height: 64,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withOpacity(0.5),
               borderRadius: BorderRadius.circular(24),
-              border:
-                  Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+              border: Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -84,7 +83,7 @@ class _TabScreenState extends State<TabScreen> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.accent100.withOpacity(0.3)
+              ? AppColors.accent100.withOpacity(0.4)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
         ),
@@ -102,19 +101,19 @@ class _TabScreenState extends State<TabScreen> {
     return ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withOpacity(0.6),
             borderRadius: BorderRadius.circular(borderRadius),
             border:
-                Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+                Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 8,
                 spreadRadius: 0,
-                offset: const Offset(0, 4),
+                offset: const Offset(0, 2),
               ),
             ],
           ),

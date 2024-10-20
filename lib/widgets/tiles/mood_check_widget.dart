@@ -115,34 +115,26 @@ class MoodCheckPainter extends CustomPainter {
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
     final rRect = RRect.fromRectAndRadius(rect, Radius.circular(20));
 
-    // Use the bluish gradient from the third featured tile
-    final gradient = LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [Color(0xFF61A3FE), Color(0xFF63FFD5)],
-    );
-
-    final paint = Paint()..shader = gradient.createShader(rect);
+    // Use a solid color instead of a gradient
+    final paint = Paint()..color = Color(0xFF3498DB); // A calming blue color
 
     canvas.drawRRect(rRect, paint);
 
-    // Draw multiple wavy lines with varying opacity
-    for (var i = 0; i < 4; i++) {
-      _drawWavyLine(canvas, size, i * 0.2, (i + 1) * 0.05);
-    }
+    // Add a subtle overlay for depth
+    final overlayPaint = Paint()
+      ..color = Colors.white.withOpacity(0.05)
+      ..style = PaintingStyle.fill;
 
-    // Add a subtle glow effect
-    final glowPaint = Paint()
-      ..color = Colors.white.withOpacity(0.1)
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 20);
-    canvas.drawCircle(
-      Offset(size.width * 0.8, size.height * 0.2),
-      size.width * 0.3,
-      glowPaint,
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, size.height * 0.6, size.width, size.height * 0.4),
+        Radius.circular(20),
+      ),
+      overlayPaint,
     );
 
-    // Draw decorative shapes
-    _drawDecorativeShapes(canvas, size);
+    // Add a single, subtle wavy line
+    _drawWavyLine(canvas, size, 0.7, 0.1);
   }
 
   void _drawWavyLine(Canvas canvas, Size size, double yOffset, double opacity) {
@@ -152,42 +144,13 @@ class MoodCheckPainter extends CustomPainter {
       ..strokeWidth = 1.5;
 
     final path = Path();
-    path.moveTo(0, size.height * (0.2 + yOffset));
+    path.moveTo(0, size.height * yOffset);
     for (var x = 0; x <= size.width; x++) {
-      final y = math.sin((x / size.width) * 4 * math.pi) * 8 +
-          size.height * (0.2 + yOffset);
+      final y =
+          math.sin((x / size.width) * 2 * math.pi) * 8 + size.height * yOffset;
       path.lineTo(x.toDouble(), y);
     }
     canvas.drawPath(path, wavePaint);
-  }
-
-  void _drawDecorativeShapes(Canvas canvas, Size size) {
-    final shapePaint = Paint()
-      ..color = Colors.white.withOpacity(0.1)
-      ..style = PaintingStyle.fill;
-
-    // Draw a larger circle
-    canvas.drawCircle(
-      Offset(size.width * 0.9, size.height * 0.2),
-      size.width * 0.2,
-      shapePaint,
-    );
-
-    // Draw a smaller circle
-    canvas.drawCircle(
-      Offset(size.width * 0.1, size.height * 0.8),
-      size.width * 0.1,
-      shapePaint,
-    );
-
-    // Draw a rounded rectangle
-    final rrectPath = Path()
-      ..addRRect(RRect.fromRectAndRadius(
-        Rect.fromLTWH(size.width * 0.6, size.height * 0.6, size.width * 0.3,
-            size.height * 0.3),
-        Radius.circular(15),
-      ));
-    canvas.drawPath(rrectPath, shapePaint);
   }
 
   @override

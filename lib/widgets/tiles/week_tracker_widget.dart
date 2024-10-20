@@ -80,11 +80,12 @@ class WeekTrackerWidget extends StatelessWidget {
                       ? LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [Color(0xFFAA77FF), Color(0xFF66347F)],
+                          colors: [AppColors.accent100, AppColors.accent300],
                         )
                       : null,
                   border: Border.all(
-                    color: isCompleted ? Colors.transparent : Colors.grey[300]!,
+                    color:
+                        isCompleted ? Colors.transparent : AppColors.neutral200,
                     width: 2,
                   ),
                 ),
@@ -98,7 +99,7 @@ class WeekTrackerWidget extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                  color: isToday ? Colors.black : Colors.grey[400],
+                  color: isToday ? AppColors.text100 : AppColors.text300,
                 ),
               ),
             ],
@@ -112,7 +113,7 @@ class WeekTrackerWidget extends StatelessWidget {
     return Container(
       width: 10,
       height: 1,
-      color: Colors.grey[300],
+      color: AppColors.neutral200,
     );
   }
 

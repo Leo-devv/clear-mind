@@ -11,7 +11,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: HomeTheme.background,
       body: SafeArea(
         bottom: false,
         child: HomeScreenBody(),

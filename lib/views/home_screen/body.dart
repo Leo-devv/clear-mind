@@ -79,7 +79,7 @@ class HomeScreenBody extends StatelessWidget {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Sarah',
+                  'Leo',
                   style: GoogleFonts.poppins(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -120,19 +120,18 @@ class HomeScreenBody extends StatelessWidget {
   }
 
   Widget _buildQuickActions(BuildContext context) {
-    // Define a new color palette
     final tileColors = [
-      Color(0xFF64B5F6), // Light Blue
-      Color(0xFF81C784), // Light Green
-      Color(0xFFFFB74D), // Light Orange
-      Color(0xFFBA68C8), // Light Purple
+      [Color(0xFF61A3FE), Color(0xFF63FFD5)],
+      [Color(0xFF61A3FE), Color(0xFF63FFD5)],
+      [Color(0xFF61A3FE), Color(0xFF63FFD5)],
+      [Color(0xFF61A3FE), Color(0xFF63FFD5)],
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Explore',
+          'Heal',
           style: GoogleFonts.poppins(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -214,44 +213,69 @@ class HomeScreenBody extends StatelessWidget {
     IconData icon,
     String label,
     String route,
-    Color color, {
+    List<Color> colors, {
     required double height,
   }) {
     return GestureDetector(
       onTap: () => context.go(route),
       child: Container(
         height: height,
-        child: CustomPaint(
-          painter: QuickActionPainter(color),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-                Text(
-                  label,
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: colors,
           ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: colors[0].withOpacity(0.3),
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              right: -20,
+              bottom: -20,
+              child: Icon(
+                icon,
+                size: height * 0.8,
+                color: Colors.white.withOpacity(0.6),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  Text(
+                    label,
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

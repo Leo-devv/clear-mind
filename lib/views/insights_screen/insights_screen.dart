@@ -1,3 +1,4 @@
+import 'package:clear_mind/views/home_screen/body.dart';
 import 'package:clear_mind/widgets/tiles/activity_summary_widget.dart';
 import 'package:clear_mind/widgets/tiles/health_journal_widget.dart';
 import 'package:clear_mind/widgets/tiles/mood_trend_widget.dart';
@@ -12,7 +13,7 @@ class InsightsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: HomeTheme.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -25,12 +26,19 @@ class InsightsScreen extends StatelessWidget {
                 'Insights',
                 style: TextStyle(
                   color: AppColors.text100,
-                  fontSize: 34,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              backgroundColor: Colors.white,
+              backgroundColor: HomeTheme.background,
               elevation: 0,
+              bottom: PreferredSize(
+                preferredSize: Size.fromHeight(1),
+                child: Container(
+                  color: HomeTheme.background,
+                  height: 1,
+                ),
+              ),
             ),
             SliverToBoxAdapter(
               child: Padding(
@@ -42,8 +50,9 @@ class InsightsScreen extends StatelessWidget {
                 ),
               ),
             ),
+            _buildSectionTitle('Your Progress'),
             SliverPadding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
@@ -57,7 +66,10 @@ class InsightsScreen extends StatelessWidget {
                     currentMood: 'Sad',
                     moodData: [0.2, 0.5, 0.8, 0.3, 0.6, 0.4, 0.7],
                   ),
-                  ActivitySummaryWidget(),
+                  ActivitySummaryWidget(
+                    exerciseMinutes: 30,
+                    meditationMinutes: 20,
+                  ),
                   MentalWellnessScoreWidget(
                     score: 75,
                     status: 'Good',
@@ -66,6 +78,22 @@ class InsightsScreen extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+        child: Text(
+          title,
+          style: TextStyle(
+            color: AppColors.text100,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
