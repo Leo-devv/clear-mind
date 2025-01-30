@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:clear_mind/styles/colors.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
+import 'package:clear_mind/services/journal_service.dart';
+import 'package:uuid/uuid.dart';
 
 class JournalScreen extends StatefulWidget {
   const JournalScreen({Key? key}) : super(key: key);
@@ -14,7 +16,7 @@ class _JournalScreenState extends State<JournalScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _journalEntryController = TextEditingController();
-  final List<JournalEntry> _journalEntries = [];
+  List<JournalEntry> _journalEntries = [];
   final List<String> _prompts = [
     "What are you grateful for today?",
     "Describe a challenge you overcame recently.",
@@ -23,12 +25,45 @@ class _JournalScreenState extends State<JournalScreen>
     "What are your goals for the next month?",
   ];
   String _currentPrompt = "";
+  String _selectedMood = "Fine";
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _currentPrompt = _getRandomPrompt();
+    _loadEntries();
+  }
+
+  Future<void> _loadEntries() async {
+    final entries = await JournalService.getEntries();
+    setState(() {
+      _journalEntries = entries;
+    });
+  }
+
+  String _getRandomPrompt() {
+    _prompts.shuffle();
+    return _prompts.first;
+  }
+
+  Future<void> _saveEntry() async {
+    if (_journalEntryController.text.isEmpty) return;
+
+    final entry = JournalEntry(
+      id: const Uuid().v4(),
+      content: _journalEntryController.text,
+      date: DateTime.now(),
+      mood: _selectedMood,
+      tags: [],
+    );
+
+    await JournalService.addEntry(entry);
+    _journalEntryController.clear();
+    await _loadEntries();
+    setState(() {
+      _currentPrompt = _getRandomPrompt();
+    });
   }
 
   @override
@@ -38,330 +73,323 @@ class _JournalScreenState extends State<JournalScreen>
     super.dispose();
   }
 
-  String _getRandomPrompt() {
-    _prompts.shuffle();
-    return _prompts.first;
-  }
-
-  void _saveJournalEntry() {
-    if (_journalEntryController.text.isNotEmpty) {
-      setState(() {
-        _journalEntries.add(JournalEntry(
-          date: DateTime.now(),
-          content: _journalEntryController.text,
-          mood: _selectedMood,
-        ));
-        _journalEntryController.clear();
-        _selectedMood = Mood.neutral;
-        _currentPrompt = _getRandomPrompt();
-      });
-      _showSnackBar('Journal entry saved successfully!');
-    } else {
-      _showSnackBar('Please write something before saving.');
-    }
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  Mood _selectedMood = Mood.neutral;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bg200,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            _buildTabBar(),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildNewEntryTab(),
-                  _buildJournalEntriesTab(),
-                  _buildInsightsTab(),
-                ],
-              ),
-            ),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.text100),
+          onPressed: () => context.go('/'),
+        ),
+        title: Text(
+          'Journal',
+          style: TextStyle(color: AppColors.text100),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: AppColors.accent200,
+          labelColor: AppColors.text100,
+          unselectedLabelColor: AppColors.text200,
+          tabs: const [
+            Tab(text: 'New Entry'),
+            Tab(text: 'Past Entries'),
+            Tab(text: 'Insights'),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.bg100,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary300.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: Icon(Icons.arrow_back, color: AppColors.text100),
-            onPressed: () => context.go('/'),
-          ),
-          Text(
-            'Journal',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.text100,
-            ),
-          ),
-          IconButton(
-            icon: Icon(Icons.settings, color: AppColors.text100),
-            onPressed: () {
-              // TODO: Implement settings
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabBar() {
-    return Container(
-      color: AppColors.bg100,
-      child: TabBar(
+      body: TabBarView(
         controller: _tabController,
-        indicatorColor: AppColors.accent200,
-        labelColor: AppColors.accent200,
-        unselectedLabelColor: AppColors.text200,
-        tabs: const [
-          Tab(text: 'New Entry'),
-          Tab(text: 'Entries'),
-          Tab(text: 'Insights'),
+        children: [
+          _buildNewEntryTab(),
+          _buildJournalEntriesTab(),
+          _buildInsightsTab(),
         ],
       ),
     );
   }
 
   Widget _buildNewEntryTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                _currentPrompt,
+                style: TextStyle(
+                  fontSize: 18,
+                  color: AppColors.text100,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           _buildMoodSelector(),
-          const SizedBox(height: 20),
-          _buildPromptCard(),
-          const SizedBox(height: 20),
-          _buildJournalEntryField(),
-          const SizedBox(height: 20),
-          _buildSaveButton(),
+          const SizedBox(height: 16),
+          Expanded(
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  controller: _journalEntryController,
+                  maxLines: null,
+                  decoration: const InputDecoration(
+                    hintText: 'Write your thoughts here...',
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _saveEntry,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.accent200,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Save Entry'),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildMoodSelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'How are you feeling?',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.text100,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: Mood.values.map((mood) {
-            return GestureDetector(
-              onTap: () => setState(() => _selectedMood = mood),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: _selectedMood == mood
-                          ? AppColors.accent200
-                          : AppColors.bg300,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      mood.emoji,
-                      style: TextStyle(fontSize: 24),
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    mood.name,
-                    style: TextStyle(
-                      color: _selectedMood == mood
-                          ? AppColors.accent200
-                          : AppColors.text200,
-                    ),
-                  ),
-                ],
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'How are you feeling?',
+              style: TextStyle(
+                fontSize: 16,
+                color: AppColors.text100,
+                fontWeight: FontWeight.w500,
               ),
-            );
-          }).toList(),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildMoodOption('Unhappy', Icons.sentiment_very_dissatisfied),
+                _buildMoodOption('Stressed', Icons.sentiment_dissatisfied),
+                _buildMoodOption('Fine', Icons.sentiment_neutral),
+                _buildMoodOption('Relaxed', Icons.sentiment_satisfied),
+                _buildMoodOption('Excited', Icons.sentiment_very_satisfied),
+              ],
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildPromptCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.bg100,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary300.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+  Widget _buildMoodOption(String mood, IconData icon) {
+    final isSelected = _selectedMood == mood;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedMood = mood),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Writing Prompt',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.text100,
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isSelected ? AppColors.accent200 : Colors.transparent,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: isSelected ? Colors.white : AppColors.text200,
+              size: 24,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 4),
           Text(
-            _currentPrompt,
+            mood,
             style: TextStyle(
-              fontSize: 16,
-              color: AppColors.text200,
-            ),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _currentPrompt = _getRandomPrompt();
-              });
-            },
-            child: Text('Get New Prompt'),
-            style: ElevatedButton.styleFrom(
-              foregroundColor: AppColors.bg100,
-              backgroundColor: AppColors.accent200,
+              fontSize: 12,
+              color: isSelected ? AppColors.accent200 : AppColors.text200,
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildJournalEntryField() {
-    return TextField(
-      controller: _journalEntryController,
-      maxLines: 10,
-      decoration: InputDecoration(
-        hintText: 'Start writing your thoughts...',
-        fillColor: AppColors.bg100,
-        filled: true,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSaveButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _saveJournalEntry,
-        child: Text('Save Entry'),
-        style: ElevatedButton.styleFrom(
-          foregroundColor: AppColors.bg100,
-          backgroundColor: AppColors.accent200,
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
       ),
     );
   }
 
   Widget _buildJournalEntriesTab() {
-    return _journalEntries.isEmpty
-        ? Center(
-            child: Text(
-              'No journal entries yet.\nStart writing to see them here!',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: AppColors.text200,
-              ),
-            ),
-          )
-        : ListView.builder(
-            itemCount: _journalEntries.length,
-            itemBuilder: (context, index) {
-              final entry = _journalEntries[_journalEntries.length - 1 - index];
-              return _buildJournalEntryCard(entry);
-            },
-          );
-  }
+    if (_journalEntries.isEmpty) {
+      return Center(
+        child: Text(
+          'No entries yet',
+          style: TextStyle(color: AppColors.text200),
+        ),
+      );
+    }
 
-  Widget _buildJournalEntryCard(JournalEntry entry) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _journalEntries.length,
+      itemBuilder: (context, index) {
+        final entry = _journalEntries[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  DateFormat('MMM d, y').format(entry.date),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.text100,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      DateFormat('MMM d, y').format(entry.date),
+                      style: TextStyle(
+                        color: AppColors.text200,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      entry.mood,
+                      style: TextStyle(
+                        color: AppColors.accent200,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 8),
                 Text(
-                  entry.mood.emoji,
-                  style: TextStyle(fontSize: 24),
+                  entry.content,
+                  style: TextStyle(
+                    color: AppColors.text100,
+                    fontSize: 16,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            Text(
-              entry.content,
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.text200,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInsightsTab() {
+    if (_journalEntries.isEmpty) {
+      return Center(
+        child: Text(
+          'No journal entries yet.\nStart writing to see your insights!',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: AppColors.text200,
+            fontSize: 16,
+          ),
+        ),
+      );
+    }
+
+    // Calculate mood counts
+    final moodCounts = <String, int>{};
+    for (final entry in _journalEntries) {
+      moodCounts[entry.mood] = (moodCounts[entry.mood] ?? 0) + 1;
+    }
+
+    // Calculate most common mood safely
+    String? mostCommonMood;
+    int maxCount = 0;
+    moodCounts.forEach((mood, count) {
+      if (count > maxCount) {
+        maxCount = count;
+        mostCommonMood = mood;
+      }
+    });
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (moodCounts.isNotEmpty) Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Mood Distribution',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: AppColors.text100,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ...moodCounts.entries.map((e) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Text(
+                                e.key,
+                                style: TextStyle(color: AppColors.text200),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: LinearProgressIndicator(
+                                  value: e.value / _journalEntries.length,
+                                  backgroundColor: AppColors.bg100,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.accent200),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${e.value}',
+                                style: TextStyle(color: AppColors.text200),
+                              ),
+                            ],
+                          ),
+                        )),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Statistics',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: AppColors.text100,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildStatItem('Total Entries', '${_journalEntries.length}'),
+                    if (mostCommonMood != null)
+                      _buildStatItem('Most Common Mood', mostCommonMood!),
+                    _buildStatItem(
+                      'Journaling Streak',
+                      '${_calculateStreak()} days',
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -370,117 +398,58 @@ class _JournalScreenState extends State<JournalScreen>
     );
   }
 
-  Widget _buildInsightsTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildMoodDistributionChart(),
-          const SizedBox(height: 20),
-          _buildJournalingSummary(),
-          const SizedBox(height: 20),
-          _buildWordCloudCard(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMoodDistributionChart() {
-    // TODO: Implement mood distribution chart
-    return Container(
-      height: 200,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.bg100,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Center(
-        child: Text(
-          'Mood Distribution Chart\n(To be implemented)',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 16,
-            color: AppColors.text200,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildJournalingSummary() {
-    int totalEntries = _journalEntries.length;
-    int streakDays = _calculateStreakDays();
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.bg100,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildStatItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Journaling Summary',
+            label,
+            style: TextStyle(color: AppColors.text200),
+          ),
+          Text(
+            value,
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
               color: AppColors.text100,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 10),
-          Text('Total Entries: $totalEntries'),
-          Text('Current Streak: $streakDays days'),
-          // Add more statistics here
         ],
       ),
     );
   }
 
-  int _calculateStreakDays() {
-    // TODO: Implement streak calculation logic
-    return 0;
+  int _calculateStreak() {
+    if (_journalEntries.isEmpty) return 0;
+
+    final sortedEntries = List<JournalEntry>.from(_journalEntries)
+      ..sort((a, b) => b.date.compareTo(a.date));
+
+    var streak = 1;
+    var currentDate = DateTime.now();
+    var lastEntryDate = sortedEntries.first.date;
+
+    // If the last entry is not from today, break the streak
+    if (!_isSameDay(currentDate, lastEntryDate)) {
+      return 0;
+    }
+
+    for (var i = 1; i < sortedEntries.length; i++) {
+      final previousDate = sortedEntries[i].date;
+      if (_isSameDay(
+          lastEntryDate.subtract(const Duration(days: 1)), previousDate)) {
+        streak++;
+        lastEntryDate = previousDate;
+      } else {
+        break;
+      }
+    }
+
+    return streak;
   }
 
-  Widget _buildWordCloudCard() {
-    // TODO: Implement word cloud visualization
-    return Container(
-      height: 200,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.bg100,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Center(
-        child: Text(
-          'Word Cloud\n(To be implemented)',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 16,
-            color: AppColors.text200,
-          ),
-        ),
-      ),
-    );
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
-}
-
-class JournalEntry {
-  final DateTime date;
-  final String content;
-  final Mood mood;
-
-  JournalEntry({required this.date, required this.content, required this.mood});
-}
-
-enum Mood {
-  happy('😊'),
-  sad('😢'),
-  angry('😠'),
-  excited('😃'),
-  neutral('😐');
-
-  final String emoji;
-  const Mood(this.emoji);
 }
